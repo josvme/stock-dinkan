@@ -31,18 +31,28 @@ val commonSettings = Seq(
   libraryDependencies ++= Seq(
     // "core" module - IO, IOApp, schedulers
     // This pulls in the kernel and std modules automatically.
-    "org.typelevel" %% "cats-effect" % "3.2.9",
+    "org.typelevel" %% "cats-effect" % "3.3.4",
     // concurrency abstractions and primitives (Concurrent, Sync, Async etc.)
-    "org.typelevel" %% "cats-effect-kernel" % "3.2.9",
+    "org.typelevel" %% "cats-effect-kernel" % "3.3.4",
     // standard "effect" library (Queues, Console, Random etc.)
-    "org.typelevel" %% "cats-effect-std" % "3.2.9",
+    "org.typelevel" %% "cats-effect-std" % "3.3.4",
     "org.typelevel" %% "cats-effect-testing-specs2" % "1.3.0" % Test,
-    "org.typelevel" %% "munit-cats-effect-3" % "1.0.6" % Test,
+    "org.typelevel" %% "munit-cats-effect-3" % "1.0.7" % Test,
     "com.softwaremill.sttp.client3" %% "core" % "3.4.1",
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-fs2" % "3.4.1",
+    // migrations
+    "com.github.pureconfig" %% "pureconfig" % "0.17.1",
+    "org.flywaydb" % "flyway-core" % "8.4.2",
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
   ) ++ circeDeps ++ doobie,
 
 )
 
-lazy val root = (project in file(".")).
-  settings(commonSettings)
+lazy val runMigrate = taskKey[Unit]("Migrates the database schema.")
+addCommandAlias("run-db-migrations", "runMigrate")
+
+lazy val root = (project in file("."))
+  .settings(
+    fullRunTask(runMigrate, Compile, "migrations.DBMigrationsCommand"),
+    runMigrate / fork := true,
+  ).settings(commonSettings)
