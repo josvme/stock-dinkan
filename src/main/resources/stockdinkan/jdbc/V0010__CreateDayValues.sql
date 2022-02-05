@@ -1,4 +1,4 @@
-CREATE TABLE FirstTable(
+CREATE TABLE DayValues(
   id SERIAL PRIMARY KEY,
   symbol VARCHAR(30) NOT NULL,
   stime INTEGER NOT NULL,
@@ -11,5 +11,5 @@ CREATE TABLE FirstTable(
   vwap FLOAT NOT NULL
 );
 
-CREATE UNIQUE INDEX FirstTable__SymbolTime
-ON FirstTable(stime, symbol);
+CREATE UNIQUE INDEX DayValues__SymbolTime
+ON DayValues(stime, symbol);
