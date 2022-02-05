@@ -1,12 +1,30 @@
 ## List of Tasks
+[x] Create first migration to create day-wise stock data
 
+[x] Download stock data and save to disk
+
+[x] Implement Dummy Read and Write interface and implementation
+
+[] Write downloaded files to DB
+
+[] Read data from DB
+
+[] write an integration test
+
+[] Build a simple flat-base analyzer
+
+[] test flat-base with a test
+
+[] Build UI
+
+
+## List of high-level tasks
 ### Bootstrapping
-* Download stock data and save to disk
 * Write messages to Kafka for consuming
 
 ### Writing Data to DB
 * Read file and write to DB
-  * As of now tables are based on time, say 1D tables, 1min table, 4 hr table etc. For now we only have 1D table
+    * As of now tables are based on time, say 1D tables, 1min table, 4 hr table etc. For now we only have 1D table
 
 ### Read from DB
 * Read data from database
