@@ -7,6 +7,12 @@ organization := "me.josv"
 version := "1.0"
 
 
+val fs2Version = "3.2.0"
+val fs2 = Seq(
+  "co.fs2" %% "fs2-core",
+  "co.fs2" %% "fs2-io"
+).map(_ % fs2Version)
+
 val circeVersion = "0.14.1"
 val circeDeps = Seq(
   "io.circe" %% "circe-core",
@@ -44,7 +50,7 @@ val commonSettings = Seq(
     "com.github.pureconfig" %% "pureconfig" % "0.17.1",
     "org.flywaydb" % "flyway-core" % "8.4.2",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
-  ) ++ circeDeps ++ doobie,
+  ) ++ circeDeps ++ doobie ++ fs2,
 
 )
 
