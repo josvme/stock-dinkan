@@ -23,13 +23,13 @@ object DatabaseReadWritePort {
 
 class DatabaseReadWritePort[F[+_] : Monad : Sync](xa: Transactor.Aux[F, Unit]) {
 
-  def find(symbol: String): F[Option[String]] = {
-    val t: doobie.ConnectionIO[Option[String]] = sql"select symbol from dayvalues where symbol = $symbol".query[String].option
+  def find(symbol: String): F[Option[DayData]] = {
+    val t: doobie.ConnectionIO[Option[DayData]] = sql"select * from dayvalues where symbol = $symbol".query[DayData].option
     t.transact(xa)
   }
 
   def writeDayData(d: DayData): F[Option[Int]] = {
-    val q = sql"insert into dayvalues(symbol, stime, sopen, sclose, low, high, volume, trade_count, vwap) values (${d.symbol}, ${d.time}, ${d.open}, ${d.close}, ${d.low}, ${d.high}, ${d.volume}, ${d.trade_count}, ${d.vwap})"
+    val q = sql"insert into dayvalues(symbol, stime, sopen, sclose, low, high, volume, trade_count, vwap) values (${d.symbol}, ${d.stime}, ${d.sopen}, ${d.sclose}, ${d.low}, ${d.high}, ${d.volume}, ${d.trade_count}, ${d.vwap})"
     println(q.query.sql)
     println(d)
     val qq = q.update.run.transact(xa)
