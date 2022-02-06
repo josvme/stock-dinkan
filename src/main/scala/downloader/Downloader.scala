@@ -11,7 +11,7 @@ import java.io.File
 
 object Downloader {
 
-  def downloadFile(ticker: String): IO[Response[Either[String, File]]] = {
+  def downloadFile(ticker: String): IO[Either[String, File]] = {
     val fileLocation = s"./stock-files/${ticker}.json"
     AsyncHttpClientFs2Backend.resource[IO]().use { backend =>
      emptyRequest
@@ -21,6 +21,7 @@ object Downloader {
         .get(uri"${RequestConfig.APCA_API_BASE_URL}/$ticker/bars?timeframe=${StockConfig.timeFrame}&start=${StockConfig.start}&end=${StockConfig.end}")
         .response(asFile(new File(fileLocation)))
         .send(backend)
+       .map(_.body)
     }
   }
 }

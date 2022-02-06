@@ -5,6 +5,8 @@
 
 [x] Implement Dummy Read and Write interface and implementation
 
+[] Parse downloaded files with circe
+
 [] Write downloaded files to DB
 
 [] Read data from DB

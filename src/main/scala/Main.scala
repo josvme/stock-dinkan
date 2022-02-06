@@ -6,7 +6,6 @@ import doobie.util.transactor.Transactor.Aux
 import migrations.JdbcDatabaseConfig
 import saver.{DatabaseReadWritePort, DummyDayDataProvider}
 
-import scala.io.{BufferedSource, Source}
 
 object Main extends App {
   println("Welcome to Stock Dinkan")
