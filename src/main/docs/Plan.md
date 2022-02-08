@@ -5,15 +5,15 @@
 
 [x] Implement Dummy Read and Write interface and implementation
 
-[] Parse downloaded files with circe
+[x] Parse downloaded files with circe
 
-[] Write downloaded files to DB
+[x] Write downloaded files to DB
 
 [] Read data from DB
 
-[] write an integration test
-
 [] Build a simple flat-base analyzer
+
+[] write an integration test
 
 [] test flat-base with a test
 

@@ -1,8 +1,8 @@
 package analysis
 
-import models.StockQuotes
+import models.{DayData}
 
 trait AnalysisTrait {
 
-  def passAnalysis(stocks: StockQuotes): Boolean
+  def passAnalysis(stocks: Vector[DayData]): Boolean
 }

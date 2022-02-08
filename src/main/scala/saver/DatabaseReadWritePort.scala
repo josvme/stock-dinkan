@@ -23,8 +23,8 @@ object DatabaseReadWritePort {
 
 class DatabaseReadWritePort[F[+_] : Monad : Sync](xa: Transactor.Aux[F, Unit]) {
 
-  def find(symbol: String): F[Option[DayData]] = {
-    val t: doobie.ConnectionIO[Option[DayData]] = sql"select * from dayvalues where symbol = $symbol".query[DayData].option
+  def find(symbol: String): F[List[DayData]] = {
+    val t = sql"select * from dayvalues where symbol = $symbol".query[DayData].to[List]
     t.transact(xa)
   }
 

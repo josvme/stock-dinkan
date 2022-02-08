@@ -3,10 +3,8 @@ package downloader
 import cats.data.EitherT
 import cats.effect.IO
 import cats.implicits._
-import cats.syntax._
 import cats.effect.unsafe.implicits.global
 import doobie.util.transactor.Transactor.Aux
-import downloader.Main.xxxx
 import migrations.JdbcDatabaseConfig
 import saver.DatabaseReadWritePort
 import transformers.JsonToDayData
@@ -37,5 +35,4 @@ object Main extends App {
   })
 
   xxxx.unsafeRunSync()
-
 }
