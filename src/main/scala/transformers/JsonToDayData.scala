@@ -1,7 +1,5 @@
 package transformers
 
-import cats.data.EitherT
-import doobie.hi.resultset.getOption
 import io.circe._
 import io.circe.parser._
 import models.DayData
@@ -32,10 +30,10 @@ object JsonToDayData {
     val sopen = _sopen.getOption(json).getOrElse(0.0)
 
     val _sclose= root.c.double
-    val sclose = _sopen.getOption(json).getOrElse(0.0)
+    val sclose = _sclose.getOption(json).getOrElse(0.0)
 
     val _low = root.l.double
-    val low = _sclose.getOption(json).getOrElse(0.0)
+    val low = _low.getOption(json).getOrElse(0.0)
 
     val _high = root.h.double
     val high = _high.getOption(json).getOrElse(0.0)

@@ -7,7 +7,6 @@ class InMemoryReadWritePort[F[+_]: Monad] extends WriteToSink[F] with ReadFromSi
 
   var internalMemory: List[DayData] = DummyDayDataProvider.generateDummyData(20)
   def writeDayData(d: DayData): F[Option[Result]] = {
-    //internalMemory = d :: internalMemory
     Option(Success("Wrote data")).pure[F]
   }
 

@@ -9,5 +9,5 @@ object RequestConfig {
 object StockConfig {
   val timeFrame = "1Day"
   val start = "2020-01-01"
-  val end = "2022-01-01"
+  val end = "2022-01-07"
 }

@@ -30,7 +30,8 @@ object Main extends App {
       yy <- EitherT(IO.delay(JsonToDayData.parseJson(x, symbol).asRight[String]))
     } yield yy
 
-    val xxx = xx.map(t => t.map(tt => db.writeDayData(tt).unsafeRunSync())).value
+    val tt = xx.value
+    val xxx = tt.map(t => t.map(tt => tt.map(ttt => db.writeDayData(ttt).unsafeRunSync())))
     xxx
   })
 

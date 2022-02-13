@@ -25,26 +25,4 @@ object Main extends App {
     val stocks = port.find("AAPL")
     insert >> stocks
   }).map(println).unsafeRunSync()
-
-  //val fullStocks = files.flatMap(file => {
-  //  val stockValues = for {
-  //    name <- file
-
-  //    val acquire: IO[BufferedSource] = IO(Source.fromFile(name))
-  //    val quotes = Resource.fromAutoCloseable(acquire)
-  //      .use { source =>
-  //        IO {
-  //          val lines = (for (line <- source.getLines) yield line).mkString
-  //          val parsedJson = JsonReader.parseFile(lines).toOption
-  //          parsedJson.map(q => StockFile(getStockName(name.getName), q))
-  //        }
-  //      }
-  //    val stockQuotes = quotes.map(jsonFile => DataPointCreator.createDayDataPoints(jsonFile))
-  //  } yield stockQuotes
-
-  // stockValues.toList.sequence
-  //}
-  //)
-
-  //  println (fullStocks.unsafeRunSync())
 }

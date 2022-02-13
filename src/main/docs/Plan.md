@@ -9,11 +9,15 @@
 
 [x] Write downloaded files to DB
 
-[] Read data from DB
+[x] Read data from DB
 
-[] Build a simple flat-base analyzer
+[x] Build a simple flat-base analyzer
 
-[] write an integration test
+[] Write an integration test
+
+[x] Download all stocks 
+
+[] Run a test on all of them
 
 [] test flat-base with a test
 
