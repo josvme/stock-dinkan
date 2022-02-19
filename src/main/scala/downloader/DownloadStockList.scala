@@ -11,6 +11,7 @@ import migrations.JdbcDatabaseConfig
 import saver.DatabaseReadWritePort
 import transformers.JsonToDayData
 
+import java.io.File
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.{Failure, Success, Using}
@@ -40,15 +41,25 @@ object DownloadStockList extends App {
 
   // Sent only 1 entry per second
   val stocksStream = Stream.eval(stocks).flatMap(Stream.emits).metered(1.second)
-  val downloadStocksStream = stocksStream.parEvalMap(2)(t =>
-    Downloader
-      .downloadFile(t, config)
-      .map(xx => {
-        println(t); (xx, t)
-      })
-  )
+  val downloadStocksStream: Stream[IO, (Either[String, File], String)] =
+    stocksStream.parEvalMap(2)(t =>
+      Downloader
+        .downloadFile(t, config)
+        .map(xx => {
+          println(t); (xx, t)
+        })
+    )
 
   val downloadStocksList = downloadStocksStream.compile.toList
+
+  val retryDownloadStocksStream = Stream
+    .retry(
+      downloadStocksList,
+      delay = 1.second, // delay before first retry
+      nextDelay = _ * 3, // doubles the delay for every retry
+      maxAttempts = 4,
+      _ => true // retry on any error
+    )
 
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
@@ -58,7 +69,7 @@ object DownloadStockList extends App {
   val xxxx = ixa.flatMap(xa => {
     val db = new DatabaseReadWritePort[IO](xa)
 
-    val readStocks = downloadStocksList
+    val readStocks = retryDownloadStocksStream
       .map((stocks => stocks.map(f => (f._1.map(Source.fromFile(_).mkString), f._2))))
     val parsedStocks = readStocks.map(f =>
       f.map(x => x._1.map(xx => JsonToDayData.parseJson(xx, x._2)))
@@ -69,7 +80,7 @@ object DownloadStockList extends App {
         tt.map(ttt => ttt.map(tttt => db.writeDayData(tttt).unsafeRunSync()))
       )
     )
-    xxx
+    xxx.compile.toList
   })
 
   xxxx.unsafeRunSync()
