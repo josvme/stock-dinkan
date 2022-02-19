@@ -22,6 +22,7 @@ import io.circe.optics.JsonPath._
 object DownloadStockList extends App {
 
   val stockListFile = s"./stock-files/stocks.json"
+  val config = StockConfig.getConfig
   val stocks = IO.delay({
     val stockListJson = parse(Source.fromFile(stockListFile).getLines().mkString).toOption
     val listSelector = root.arr
@@ -33,7 +34,7 @@ object DownloadStockList extends App {
     k.getOrElse(Vector[Json]()).map(x => x.asString.get)
   })
 
-  val downloadedStocks = stocks.flatMap(x => x.map(t => Downloader.downloadFile(t).map(xx => (xx, t))).sequence)
+  val downloadedStocks = stocks.flatMap(x => x.map(t => Downloader.downloadFile(t, config).map(xx => {println(t); (xx, t)})).sequence)
 
   val jdbcConfig: IO[JdbcDatabaseConfig] = JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
   val ixa: IO[Aux[IO, Unit]] = jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor(jdbc))

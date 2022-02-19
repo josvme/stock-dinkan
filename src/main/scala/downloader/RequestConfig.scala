@@ -6,8 +6,13 @@ object RequestConfig {
   val APCA_API_BASE_URL = "https://data.alpaca.markets/v2/stocks"
 }
 
+case class StockConfig(timeFrame: String, start: String, end: String)
 object StockConfig {
-  val timeFrame = "1Day"
-  val start = "2020-01-01"
-  val end = "2022-01-07"
+  def getConfig = {
+    val timeFrame = "1Day"
+    val start = "2020-01-01"
+    val end = "2022-02-12"
+
+    StockConfig(timeFrame, start, end)
+  }
 }

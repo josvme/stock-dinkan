@@ -16,7 +16,8 @@ object Main extends App {
 
   val fileLocation = s"./stock-files/"
   val symbol = "AAPL"
-  val download: IO[Either[String, File]] = Downloader.downloadFile(symbol)
+  val config = StockConfig.getConfig
+  val download: IO[Either[String, File]] = Downloader.downloadFile(symbol, config)
 
   val jdbcConfig: IO[JdbcDatabaseConfig] = JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
   val ixa: IO[Aux[IO, Unit]] = jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor(jdbc))

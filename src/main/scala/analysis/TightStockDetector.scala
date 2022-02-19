@@ -11,6 +11,7 @@ object TightStockDetector extends AnalysisTrait {
     val middlePriceForLast10Days= last10Days.foldRight(0.0)((x,e) => x.low + x.high + e) / 2 / 10
 
     val diffHighLow = highestHighPoint.high - lowestLowPoint.low
-    diffHighLow < middlePriceForLast10Days * .10
+    // Approximately 3*2 => 6%
+    diffHighLow < middlePriceForLast10Days * .03
   }
 }

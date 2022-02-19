@@ -11,17 +11,18 @@ import java.io.File
 
 object Downloader {
 
-  def downloadFile(ticker: String): IO[Either[String, File]] = {
+  def downloadFile(ticker: String, config: StockConfig): IO[Either[String, File]] = {
     val fileLocation = s"./stock-files/${ticker}.json"
     AsyncHttpClientFs2Backend.resource[IO]().use { backend =>
-     emptyRequest
+      val request = emptyRequest
         .header("APCA-API-KEY-ID", RequestConfig.APCA_API_KEY_ID)
         .header("APCA-API-SECRET-KEY", RequestConfig.APCA_API_SECRET_KEY)
         .contentType("application/json")
-        .get(uri"${RequestConfig.APCA_API_BASE_URL}/$ticker/bars?timeframe=${StockConfig.timeFrame}&start=${StockConfig.start}&end=${StockConfig.end}")
+        .get(uri"${RequestConfig.APCA_API_BASE_URL}/$ticker/bars?timeframe=${config.timeFrame}&start=${config.start}&end=${config.end}")
         .response(asFile(new File(fileLocation)))
-        .send(backend)
-       .map(_.body)
+
+      val response = request.send(backend)
+      response.map(_.body)
     }
   }
 }

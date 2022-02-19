@@ -28,6 +28,11 @@ class DatabaseReadWritePort[F[+_] : Monad : Sync](xa: Transactor.Aux[F, Unit]) {
     t.transact(xa)
   }
 
+  def getAllStocks: F[List[String]] = {
+    val t = sql"select DISTINCT symbol from dayvalues".query[String].to[List]
+    t.transact(xa)
+  }
+
   def writeDayData(d: DayData): F[Option[Int]] = {
     val q = sql"insert into dayvalues(symbol, stime, sopen, sclose, low, high, volume, trade_count, vwap) values (${d.symbol}, ${d.stime}, ${d.sopen}, ${d.sclose}, ${d.low}, ${d.high}, ${d.volume}, ${d.trade_count}, ${d.vwap}) ON CONFLICT DO NOTHING"
     println(q.query.sql)
