@@ -8,12 +8,14 @@ graph TD
 ```
 
 ## Frontend
+
 ```mermaid
 graph TD
     Frontend[Frontend] --> API[API]
 ```
 
 ## API
+
 ```mermaid
 graph TD
     API --> Backend
@@ -24,4 +26,5 @@ graph TD
 ```
 
 ## Job Server
+
 Keeps track of downloaded stock data and to be download data.

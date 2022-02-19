@@ -3,7 +3,9 @@ import cats.Monad
 import cats.implicits._
 import models.DayData
 
-class InMemoryReadWritePort[F[+_]: Monad] extends WriteToSink[F] with ReadFromSink[F] {
+class InMemoryReadWritePort[F[+_]: Monad]
+    extends WriteToSink[F]
+    with ReadFromSink[F] {
 
   var internalMemory: List[DayData] = DummyDayDataProvider.generateDummyData(20)
   def writeDayData(d: DayData): F[Option[Result]] = {

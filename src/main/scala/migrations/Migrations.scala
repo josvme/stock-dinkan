@@ -2,9 +2,10 @@ package migrations
 
 import cats.effect.Sync
 import com.typesafe.scalalogging.LazyLogging
-import org.flywaydb.core.api.configuration.FluentConfiguration
-import org.flywaydb.core.api.Location
 import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.Location
+import org.flywaydb.core.api.configuration.FluentConfiguration
+
 import scala.jdk.CollectionConverters._
 
 object DBMigrations extends LazyLogging {
@@ -41,7 +42,8 @@ object DBMigrations extends LazyLogging {
   }
 
   private def logValidationErrorsIfAny(m: FluentConfiguration): Unit = {
-    val validated = m.ignorePendingMigrations(true)
+    val validated = m
+      .ignorePendingMigrations(true)
       .load()
       .validateWithResult()
 
@@ -57,4 +59,3 @@ object DBMigrations extends LazyLogging {
         """.stripMargin.strip)
   }
 }
-

@@ -1,6 +1,6 @@
 package analysis
 
-import models.{DayData}
+import models.DayData
 
 trait AnalysisTrait {
 

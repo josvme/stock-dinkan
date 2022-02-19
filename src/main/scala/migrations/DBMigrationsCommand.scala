@@ -1,14 +1,13 @@
 package migrations
 
+import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import cats.effect.IOApp
-import cats.effect.{ExitCode, IO}
 import com.typesafe.scalalogging.LazyLogging
 
 object DBMigrationsCommand extends IOApp with LazyLogging {
-  /**
-   * Lists all JDBC data-sources, defined in `application.conf`
-   */
+
+  /** Lists all JDBC data-sources, defined in `application.conf`
+    */
   val dbConfigNamespaces = List(
     "stockdinkan.jdbc"
   )
@@ -17,12 +16,11 @@ object DBMigrationsCommand extends IOApp with LazyLogging {
     val migrate =
       dbConfigNamespaces.traverse_ { namespace =>
         for {
-          _   <- IO(logger.info(s"Migrating database configuration: $namespace"))
+          _ <- IO(logger.info(s"Migrating database configuration: $namespace"))
           cfg <- JdbcDatabaseConfig.loadFromGlobal[IO](namespace)
-          _   <- DBMigrations.migrate[IO](cfg)
+          _ <- DBMigrations.migrate[IO](cfg)
         } yield ()
       }
     migrate.as(ExitCode.Success)
   }
 }
-
