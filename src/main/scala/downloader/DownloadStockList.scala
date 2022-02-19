@@ -18,6 +18,7 @@ import scala.util.{Failure, Success, Using}
 
 object DownloadStockList extends App {
 
+  println("Welcome to StockDinkan Downloader")
   val stockListFile = s"./stock-files/stocks.json"
   val config = StockConfig.getConfig
   val stocks = IO.delay({

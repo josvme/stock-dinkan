@@ -11,7 +11,7 @@ import transformers.JsonToDayData
 import scala.io.Source
 
 object ReadAndWriteStocksToDB extends App {
-  println("Welcome to Stock Dinkan")
+  println("Welcome to Stock Dinkan DB Writer")
 
   val allFiles = DataSource.getAllStockFileNames[IO]
   val jdbcConfig: IO[JdbcDatabaseConfig] =
