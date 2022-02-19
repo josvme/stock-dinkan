@@ -22,3 +22,6 @@ graph TD
     Backend --> |Write results| Cache
     Backend --> API
 ```
+
+## Job Server
+Keeps track of downloaded stock data and to be download data.

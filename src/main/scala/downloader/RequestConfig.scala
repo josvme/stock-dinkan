@@ -11,7 +11,7 @@ object StockConfig {
   def getConfig = {
     val timeFrame = "1Day"
     val start = "2020-01-01"
-    val end = "2022-02-12"
+    val end = "2022-02-18"
 
     StockConfig(timeFrame, start, end)
   }
