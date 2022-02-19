@@ -18,9 +18,9 @@
 
 [x] Download all stocks
 
-[] Run a test on all of them
+[x] Read all stocks
 
-[] test flat-base with a test
+[x] test flat-base with a test
 
 [] Build UI
 

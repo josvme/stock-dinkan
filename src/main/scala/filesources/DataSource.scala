@@ -12,6 +12,7 @@ object DataSource {
     val fileFolder = "./stock-files/"
     val folders: Array[File] = (new File(fileFolder)).listFiles
       .filter(s => s.getName.endsWith("json") && s.isFile)
+      .sorted
     folders.pure[F]
   }
 }
