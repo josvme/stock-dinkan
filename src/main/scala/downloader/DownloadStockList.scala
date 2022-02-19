@@ -53,11 +53,11 @@ object DownloadStockList extends App {
   val xxxx = ixa.flatMap(xa => {
     val db = new DatabaseReadWritePort[IO](xa)
 
-    val readStocks = downloadStocksStream.map(f=> (f._1.map(Source.fromFile(_).mkString), f._2))
-    val parsedStocks = readStocks.map(x => x._1.map(xx => JsonToDayData.parseJson(xx, x._2)))
+    val readStocks = downloadStocksList.map((stocks => stocks.map(f => (f._1.map(Source.fromFile(_).mkString), f._2))))
+    val parsedStocks = readStocks.map(f => f.map(x => x._1.map(xx => JsonToDayData.parseJson(xx, x._2))))
 
-    val xxx = parsedStocks.map(t => t.map(tt => tt.map(ttt => db.writeDayData(ttt).unsafeRunSync())))
-    xxx.compile.toVector
+    val xxx = parsedStocks.map(t => t.map(tt => tt.map(ttt => ttt.map(tttt => db.writeDayData(tttt).unsafeRunSync()))))
+    xxx
   })
 
   xxxx.unsafeRunSync()
