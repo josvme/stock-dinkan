@@ -4,7 +4,10 @@ import models.DayData
 object TightStockDetector extends AnalysisTrait {
   // stock open-close shouldn't oscillate more than 4% from centre.
 
-  override def passAnalysis(stocks: Vector[DayData]): Boolean = {
+  override def passAnalysis(
+      index: Vector[DayData],
+      stocks: Vector[DayData]
+  ): Boolean = {
     val last10Days = stocks.reverse.take(10)
     val lowestLowPoint =
       last10Days.reduce((x, y) => if (x.low < y.low) x else y)
@@ -17,4 +20,6 @@ object TightStockDetector extends AnalysisTrait {
     // Approximately 3*2 => 6%
     diffHighLow < middlePriceForLast10Days * .03
   }
+
+  override def name(): String = "Tight Stock Analyzer"
 }

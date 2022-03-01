@@ -4,5 +4,6 @@ import models.DayData
 
 trait AnalysisTrait {
 
-  def passAnalysis(stocks: Vector[DayData]): Boolean
+  def passAnalysis(index: Vector[DayData], stocks: Vector[DayData]): Boolean
+  def name(): String
 }

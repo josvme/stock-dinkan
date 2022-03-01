@@ -10,8 +10,8 @@ case class StockConfig(timeFrame: String, start: String, end: String)
 object StockConfig {
   def getConfig = {
     val timeFrame = "1Day"
-    val start = "2020-01-01"
-    val end = "2022-02-18"
+    val start = "2022-02-15"
+    val end = "2022-02-25"
 
     StockConfig(timeFrame, start, end)
   }

@@ -14,13 +14,21 @@
 
 [x] Build a simple flat-base analyzer
 
-[] Write an integration test
-
 [x] Download all stocks
 
 [x] Read all stocks
 
 [x] test flat-base with a test
+
+[] Implement trend template
+
+[x] Implement RSI calculator
+
+[] Write an integration test
+
+[] Build Cronjob server
+
+[] Build an API
 
 [] Build UI
 
@@ -54,3 +62,10 @@
 ## Technical Details
 
 * Make scala project multi-project, rather than a single big project. This will help in running as cronjobs / pods
+
+## Current Issues
+* Too many blank companies on filtering
+* No P/E or Earnings etc
+* No SMA/EMA etc
+* NO RS Line
+* Cumbersome to use UI
