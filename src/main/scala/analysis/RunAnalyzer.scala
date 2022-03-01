@@ -30,15 +30,10 @@ object RunAnalyzer extends App {
 
   val result = IndexWithAllStocks.map(stocks =>
     stocks._2.map(stock => {
-      val pipeline = new Pipeline(
-        Map(
-          //TightStockDetector.name() -> TightStockDetector,
-          IncreasingWeeklyDailyRS.name() -> IncreasingWeeklyDailyRS
-        )
-      )
-      println(pipeline.name(), stock.head.symbol);
+      val p = Combiner.or(IncreasingWeeklyDailyRS, TightStockDetector)
+      println(p.name(), stock.head.symbol);
       (
-        pipeline.passAnalysis(stocks._1.toVector, stock.toVector),
+        p.passAnalysis(stocks._1.toVector, stock.toVector),
         stock.head.symbol
       )
     })
