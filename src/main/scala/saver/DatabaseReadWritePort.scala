@@ -25,15 +25,22 @@ object DatabaseReadWritePort {
 
 class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
 
+  // 1628886400000 => Fri Aug 13 2021 20:26:40 GMT+0000
+  // lets take values only from then
   def find(symbol: String): F[List[DayData]] = {
-    val t = sql"select * from dayvalues where symbol = $symbol"
-      .query[DayData]
-      .to[List]
+    val t =
+      sql"select * from dayvalues where symbol = $symbol AND stime > 1628886400000"
+        .query[DayData]
+        .to[List]
     t.transact(xa)
   }
 
+  // Get only stocks where price > 10
   def getAllStocks: F[List[String]] = {
-    val t = sql"select DISTINCT symbol from dayvalues".query[String].to[List]
+    val t =
+      sql"select DISTINCT symbol from dayvalues WHERE high > 10"
+        .query[String]
+        .to[List]
     t.transact(xa)
   }
 

@@ -6,6 +6,7 @@ import cats.effect.unsafe.implicits.global
 import doobie.util.transactor.Transactor.Aux
 import migrations.JdbcDatabaseConfig
 import saver.DatabaseReadWritePort
+import utilies.Indicators
 
 object RunAnalyzer extends App {
 
@@ -28,12 +29,19 @@ object RunAnalyzer extends App {
     } yield (nas, all)
   })
 
-  val result = IndexWithAllStocks.map(stocks =>
-    stocks._2.map(stock => {
-      val p = Combiner.or(IncreasingWeeklyDailyRS, TightStockDetector)
+  val result = IndexWithAllStocks.map(IndexStockPair =>
+    IndexStockPair._2.map(stock => {
+      //val p = Combiner.or(IncreasingWeeklyDailyRS, TightStockDetector)
+      val p = IncreasingWeeklyDailyRS
+      val t = Indicators
+        .combineIndexAndStockData(
+          IndexStockPair._1.toVector,
+          stock.toVector
+        )
+        .map(x => (x.index, x.stocks))
       println(p.name(), stock.head.symbol);
       (
-        p.passAnalysis(stocks._1.toVector, stock.toVector),
+        p.passAnalysis(t.map(_._1), t.map(_._2)),
         stock.head.symbol
       )
     })

@@ -24,6 +24,12 @@
 
 [x] Implement RSI calculator
 
+[] Add more unittests
+
+[x] Add flexible boolean combiner
+
+[] Unify timestamps to run analysis by comparing timestamps
+
 [] Write an integration test
 
 [] Build Cronjob server

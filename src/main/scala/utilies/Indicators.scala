@@ -1,6 +1,14 @@
 package utilies
 
-import models.{DayData, DayDataExtras, WeekData, WeekDataExtras}
+import models.{
+  DayData,
+  DayDataExtras,
+  TimeBasedStockCompareModel,
+  WeekData,
+  WeekDataExtras
+}
+
+import scala.collection.mutable
 
 object Indicators {
   def getExtendedDayDataFromDayData(
@@ -137,4 +145,31 @@ object Indicators {
 
   def computeDailyExponentialMovingAverage(stocks: Vector[Double], n: Int) =
     ???
+
+  def combineIndexAndStockData(
+      index: Vector[DayData],
+      stocks: Vector[DayData]
+  ): Vector[TimeBasedStockCompareModel] = {
+    val indexHash = index.foldLeft(mutable.TreeMap[Long, DayData]())({
+      case (o, d) =>
+        o + (d.stime -> d)
+    })
+    val stocksHash = stocks.foldLeft(mutable.TreeMap[Long, DayData]())({
+      case (o, d) =>
+        o + (d.stime -> d)
+    })
+
+    val combinedKeys = indexHash.keys ++ stocksHash.keys
+    var combinedStockData = List[TimeBasedStockCompareModel]()
+    for (key <- combinedKeys) {
+      if (indexHash.contains(key) && stocksHash.contains(key)) {
+        combinedStockData = combinedStockData :+ TimeBasedStockCompareModel(
+          key,
+          indexHash(key),
+          stocksHash(key)
+        )
+      }
+    }
+    combinedStockData.toVector
+  }
 }
