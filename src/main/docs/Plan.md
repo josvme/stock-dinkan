@@ -28,7 +28,9 @@
 
 [x] Add flexible boolean combiner
 
-[] Unify timestamps to run analysis by comparing timestamps
+[x] Unify timestamps to run analysis by comparing timestamps
+
+[] Fix issue with pre-market gap ups and gap downs
 
 [] Write an integration test
 

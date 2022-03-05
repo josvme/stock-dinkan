@@ -68,7 +68,9 @@ object Indicators {
     val indexRS = index.map({ case (o, c) => (c - o) / o })
     val stockRS = stock.map({ case (o, c) => (c - o) / o })
 
-    (indexRS zip stockRS).map({ case (index, stock) => stock / index })
+    (indexRS zip stockRS).map({ case (index, stock) =>
+      (stock - index) / Math.abs(stock + index)
+    })
   }
 
   def computeDailySimpleMovingAverage(
@@ -133,7 +135,8 @@ object Indicators {
     val stocksOnWeek = stocks.groupBy((dayData) =>
       getWeekNumberAndYearFromUnixTimestamp(dayData.stime)
     )
-    stocksOnWeek
+    // groupby gives a hashmap which is not sorted
+    val result = stocksOnWeek
       .map({
         case ((year, week), dayData) => {
           (year * 100 + week, convertDayDataToWeekData(dayData))
@@ -141,6 +144,8 @@ object Indicators {
       })
       .values
       .toVector
+
+    result.sortWith({ case (x, y) => x.stime < y.stime })
   }
 
   def computeDailyExponentialMovingAverage(stocks: Vector[Double], n: Int) =
