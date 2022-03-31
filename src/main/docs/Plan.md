@@ -20,15 +20,17 @@
 
 [x] test flat-base with a test
 
-[] Implement trend template
-
 [x] Implement RSI calculator
 
-[] Add more unittests
+[x] Get RS rating value between 0 and 100
 
 [x] Add flexible boolean combiner
 
 [x] Unify timestamps to run analysis by comparing timestamps
+
+[x] Implement trend template from mark minervini
+
+[] Implement fundamental data from yfinance (Python)
 
 [] Fix issue with pre-market gap ups and gap downs
 
@@ -39,6 +41,8 @@
 [] Build an API
 
 [] Build UI
+
+[] Add more unittests
 
 ## List of high-level tasks
 

@@ -31,8 +31,8 @@ object RunAnalyzer extends App {
 
   val result = IndexWithAllStocks.map(IndexStockPair =>
     IndexStockPair._2.map(stock => {
-      //val p = Combiner.or(IncreasingWeeklyDailyRS, TightStockDetector)
-      val p = IncreasingWeeklyDailyRS
+      val p = Combiner.and(IncreasingWeeklyDailyRS, MinerviniScan)
+      //val p = IncreasingWeeklyDailyRS
       val t = Indicators
         .combineIndexAndStockData(
           IndexStockPair._1.toVector,
