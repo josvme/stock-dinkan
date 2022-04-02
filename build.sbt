@@ -28,6 +28,7 @@ val circeDeps = Seq(
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core" % "1.0.0-RC1",
   "org.tpolecat" %% "doobie-postgres" % "1.0.0-RC1", // Postgres driver 42.3.1 + type mappings.
+  "org.tpolecat" %% "doobie-postgres-circe" % "1.0.0-RC1",
   "org.tpolecat" %% "doobie-specs2" % "1.0.0-RC1" % "test", // Specs2 support for typechecking statements.
   "org.tpolecat" %% "doobie-scalatest" % "1.0.0-RC1" % "test" // ScalaTest support for typechecking statements.
 )
@@ -49,6 +50,22 @@ val commonSettings = Seq(
     // migrations
     "com.github.pureconfig" %% "pureconfig" % "0.17.1",
     "org.flywaydb" % "flyway-core" % "8.4.2",
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
+    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
+    // for python interoperability
+    "me.shadaj" %% "scalapy-core" % "0.5.1"
   ) ++ circeDeps ++ doobie ++ fs2
 )
+
+// Load python
+fork := true
+import ai.kien.python.Python
+
+// This should take care of virtualenv
+lazy val python = Python(
+  "/home/josv/Projects/StockDinkan/stock-dinkan/env/bin/python"
+)
+lazy val javaOpts = python.scalapyProperties.get.map { case (k, v) =>
+  s"""-D$k=$v"""
+}.toSeq
+
+javaOptions ++= javaOpts

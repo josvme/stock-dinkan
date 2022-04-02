@@ -6,6 +6,7 @@ import cats.implicits._
 import doobie._
 import doobie.implicits._
 import doobie.util.transactor.Transactor.Aux
+import io.circe.Json
 import migrations.JdbcDatabaseConfig
 import models.DayData
 
@@ -24,7 +25,6 @@ object DatabaseReadWritePort {
 }
 
 class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
-
   // 1628886400000 => Fri Aug 13 2021 20:26:40 GMT+0000
   // lets take values only from then
   def find(symbol: String): F[List[DayData]] = {
@@ -49,6 +49,15 @@ class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
       sql"insert into dayvalues(symbol, stime, sopen, sclose, low, high, volume, trade_count, vwap) values (${d.symbol}, ${d.stime}, ${d.sopen}, ${d.sclose}, ${d.low}, ${d.high}, ${d.volume}, ${d.trade_count}, ${d.vwap}) ON CONFLICT DO NOTHING"
     println(q.query.sql)
     println(d)
+    val qq = q.update.run.transact(xa)
+    qq.map(Option(_))
+  }
+
+  def writeFundamentals(symbol: String, data: Json): F[Option[Int]] = {
+    import doobie.postgres.circe.jsonb.implicits._
+    implicit val meta: Meta[Json] = new Meta(pgDecoderGet, pgEncoderPut)
+    val q =
+      sql"insert into fundamentals(symbol, data) values (${symbol}, $data) ON CONFLICT DO NOTHING"
     val qq = q.update.run.transact(xa)
     qq.map(Option(_))
   }

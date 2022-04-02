@@ -1,3 +1,4 @@
 target/
 .idea/
 stock-files/*.json
+env/
