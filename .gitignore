@@ -1,4 +1,5 @@
 target/
 .idea/
 stock-files/*.json
+stock-fundamental-files/*.json
 env/

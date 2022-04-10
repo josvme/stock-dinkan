@@ -36,11 +36,27 @@ class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
   }
 
   // Get only stocks where price > 10
-  def getAllStocks: F[List[String]] = {
+  def getAllStocksWithPriceMoreThanTen: F[List[String]] = {
     val t =
       sql"select DISTINCT symbol from dayvalues WHERE high > 10"
         .query[String]
         .to[List]
+    t.transact(xa)
+  }
+
+  def getAllStocks: F[List[String]] = {
+    val t =
+      sql"select DISTINCT symbol from dayvalues"
+        .query[String]
+        .to[List]
+    t.transact(xa)
+  }
+
+  def getLatestPointForStock(symbol: String): F[Long] = {
+    val t =
+      sql"select max(stime) from dayvalues where symbol = $symbol"
+        .query[Long]
+        .unique
     t.transact(xa)
   }
 
