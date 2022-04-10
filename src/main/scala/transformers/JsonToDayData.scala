@@ -4,61 +4,84 @@ import io.circe._
 import io.circe.optics.JsonPath._
 import io.circe.parser._
 import models.DayData
-
-import java.time.Instant
+import monocle.Optional
 
 object JsonToDayData {
   def parseJson(s: String, symbol: String): List[DayData] = {
     val t = parse(s).toOption
-    val _bars = root.bars.arr
+    val _bars = root.chart.result.arr
     val k = for {
       x <- t
       y <- _bars.getOption(x)
     } yield y
 
     val kk = k.getOrElse(Vector[Json]()).map(j => jsonToDayData(j, symbol))
-    kk.toList
+    kk.head.toList
   }
 
-  def jsonToDayData(json: Json, symbol: String): DayData = {
+  def getValuesDouble(
+      pattern: Optional[Json, Vector[Json]],
+      json: Json
+  ): Vector[Double] = {
+    pattern
+      .getOption(json)
+      .getOrElse(Vector[Json]())
+      .map(_.as[Double].getOrElse(0.0))
+  }
 
-    val _stime = root.t.string
-    val stime = Instant
-      .parse(_stime.getOption(json).getOrElse("2020-01-06T05:00:00Z"))
-      .toEpochMilli
+  def getValuesInt(
+      pattern: Optional[Json, Vector[Json]],
+      json: Json
+  ): Vector[Int] = {
+    pattern
+      .getOption(json)
+      .getOrElse(Vector[Json]())
+      .map(_.as[Int].getOrElse(0))
+  }
 
-    val _sopen = root.o.double
-    val sopen = _sopen.getOption(json).getOrElse(0.0)
+  def jsonToDayData(json: Json, symbol: String): Vector[DayData] = {
+    val _stime: Optional[Json, Vector[Json]] = root.timestamp.arr
+    val sstime = _stime
+      .getOption(json)
+      .getOrElse(Vector[Json]())
 
-    val _sclose = root.c.double
-    val sclose = _sclose.getOption(json).getOrElse(0.0)
+    val stime =
+      sstime.map(t => t.as[Long].getOrElse(9L))
 
-    val _low = root.l.double
-    val low = _low.getOption(json).getOrElse(0.0)
+    val _indicators = root.indicators.quote.arr
+    val indicators = _indicators
+      .getOption(json)
+      .getOrElse(Vector[Json]())
+      .head
 
-    val _high = root.h.double
-    val high = _high.getOption(json).getOrElse(0.0)
+    val _low = root.low.arr
+    val low = _low
+      .getOption(indicators)
+      .getOrElse(Vector[Json]())
+      .map(_.as[Double].getOrElse(0.0))
 
-    val _volume = root.v.int
-    val volume = _volume.getOption(json).getOrElse(0)
+    val _sopen = root.open.arr
+    val sopen = getValuesDouble(_sopen, indicators)
 
-    val _trade_count = root.n.int
-    val trade_count = _trade_count.getOption(json).getOrElse(0)
+    val _sclose = root.close.arr
+    val sclose = getValuesDouble(_sclose, indicators)
 
-    val _vwap = root.vw.double
-    val vwap = _vwap.getOption(json).getOrElse(0.0)
+    val _high = root.high.arr
+    val high = getValuesDouble(_high, indicators)
 
-    DayData(
-      0,
-      symbol,
-      stime,
-      sopen,
-      sclose,
-      low,
-      high,
-      volume,
-      trade_count,
-      vwap
-    )
+    val _volume = root.volume.arr
+    val volume = getValuesInt(_volume, indicators)
+
+    val combined = stime
+      .zip(sopen)
+      .zip(sclose)
+      .zip(low)
+      .zip(high)
+      .zip(volume)
+      .map { case (((((t, o), c), l), h), v) =>
+        DayData(0, symbol, t, o, c, l, h, v, 0, 0.0)
+      }
+
+    combined
   }
 }

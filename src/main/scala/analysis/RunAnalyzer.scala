@@ -18,7 +18,7 @@ object RunAnalyzer extends App {
 
   val IndexWithAllStocks = ixa.flatMap(xa => {
     val db = new DatabaseReadWritePort[IO](xa)
-    val allStocks = db.getAllStocks
+    val allStocks = db.getAllStocksWithPriceMoreThanTen
     val nasdaq = db.find("QQQ")
     val allStocksData =
       allStocks.flatMap(stocks => stocks.map(db.find(_)).sequence)

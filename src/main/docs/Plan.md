@@ -22,15 +22,19 @@
 
 [x] Implement RSI calculator
 
-[x] Get RS rating value between 0 and 100
-
 [x] Add flexible boolean combiner
 
 [x] Unify timestamps to run analysis by comparing timestamps
 
 [x] Implement trend template from mark minervini
 
-[] Implement fundamental data from yfinance (Python)
+[x] Implement fundamental data from yfinance (Python)
+
+[x] Implement stock data from yahoo finance as data from Alpaca is not split adjusted
+
+[] Compute leading groups
+
+[] Get RS rating value between 0 and 100, 2*c/c63 + c/c126 + c/c189 + c/c252
 
 [] Fix issue with pre-market gap ups and gap downs
 
