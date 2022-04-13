@@ -46,7 +46,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
 
   def getAllStocks: F[List[String]] = {
     val t =
-      sql"select DISTINCT symbol from dayvalues"
+      sql"select DISTINCT symbol from dayvalues order by symbol"
         .query[String]
         .to[List]
     t.transact(xa)

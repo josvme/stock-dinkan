@@ -40,8 +40,8 @@ object SyncLatestDataWithYahooFinance extends App {
     val allStocksStream = Stream.eval(allStocks).flatMap(Stream.emits)
     val allStocksPeriods =
       allStocksStream.evalMap(symbol => getDatePeriodsForStock(symbol, epoch))
-    val allStocksPeriodStreamPerSecond = allStocksPeriods.metered(1.second)
-    val fetchedStocks = allStocksPeriodStreamPerSecond.evalMap(period =>
+    val allStocksPeriodStreamPerSecond = allStocksPeriods
+    val fetchedStocks = allStocksPeriodStreamPerSecond.parEvalMap(1)(period =>
       getAndWriteStockData(period._1, period._2)
     )
     fetchedStocks
@@ -92,16 +92,17 @@ object SyncLatestDataWithYahooFinance extends App {
       config: YahooStockConfig
   ): IO[List[DayData]] = {
 
-    if (config.end.toInt - config.start.toInt < 3600 * 24) {
+    if (config.end.toInt - config.start.toInt <= 3600 * 24) {
       IO.pure(List.empty)
+    } else {
+      val stockData =
+        DownloaderYahoo.downloadStockData(symbol, config).map(_.toOption)
+      val stockDataList = stockData.map(s =>
+        s.map(ss => JsonToDayData.parseJson(ss, symbol))
+          .getOrElse(List[DayData]())
+      )
+      stockDataList
     }
-    val stockData =
-      DownloaderYahoo.downloadStockData(symbol, config).map(_.toOption)
-    val stockDataList = stockData.map(s =>
-      s.map(ss => JsonToDayData.parseJson(ss, symbol))
-        .getOrElse(List[DayData]())
-    )
-    stockDataList
   }
 
   syncData().compile.drain.unsafeRunSync()
