@@ -46,3 +46,8 @@ rs as (
 
 	select * from rs order by strength desc ;
 ```
+
+# Delete all stocks with NaN values
+```postgres-sql
+delete from dayvalues where symbol IN (select distinct symbol from dayvalues where sopen = 'NaN');
+```
