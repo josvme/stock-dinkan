@@ -9,11 +9,14 @@ import models.DayData
 import saver.DatabaseReadWritePort
 import transformers.JsonToDayData
 import cats.implicits._
+import fs2.Stream
 
-import java.time.Instant
+import java.time.{Instant, LocalTime, ZoneId, ZoneOffset}
+import scala.concurrent.duration.DurationInt
 
 object SyncLatestDataWithYahooFinance extends App {
 
+  println("Welcome to StockDinkan Yahoo Finance Data Sync")
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
   val ixa: IO[Aux[IO, Unit]] =
@@ -28,14 +31,20 @@ object SyncLatestDataWithYahooFinance extends App {
   def syncData() = {
     // get all latest data from DB for a stock and then sync it with the latest date
     val currentTime = Instant.now()
+    import java.time.LocalTime
+    import java.time.LocalDateTime
+
+    val now = LocalDateTime.now().`with`(LocalTime.MIDNIGHT)
+    val epoch = now.toEpochSecond(ZoneOffset.UTC)
     val allStocks = dbPort.flatMap(_.getAllStocks)
-    val allStocksPeriods = allStocks.flatMap(stocks =>
-      stocks.map(symbol => getDatePeriodsForStock(symbol, currentTime)).sequence
+    val allStocksStream = Stream.eval(allStocks).flatMap(Stream.emits)
+    val allStocksPeriods =
+      allStocksStream.evalMap(symbol => getDatePeriodsForStock(symbol, epoch))
+    val allStocksPeriodStreamPerSecond = allStocksPeriods.metered(1.second)
+    val fetchedStocks = allStocksPeriodStreamPerSecond.evalMap(period =>
+      getAndWriteStockData(period._1, period._2)
     )
-    val writtenStocks = allStocksPeriods.flatMap(periods =>
-      periods.map(period => getAndWriteStockData(period._1, period._2)).sequence
-    )
-    writtenStocks
+    fetchedStocks
   }
 
   def getAndWriteStockData(
@@ -55,20 +64,37 @@ object SyncLatestDataWithYahooFinance extends App {
 
   def getDatePeriodsForStock(
       symbol: String,
-      endData: Instant
+      endData: Long
   ): IO[(String, YahooStockConfig)] = {
-    val currentTime = endData.getEpochSecond
+    val currentTime = endData
     val latestTimeInStock = dbPort.flatMap(_.getLatestPointForStock(symbol))
 
     latestTimeInStock.map(l =>
-      (symbol, YahooStockConfig("1d", currentTime.toString, l.toString))
+      (
+        symbol,
+        YahooStockConfig("1d", getStartOfDay(l).toString, currentTime.toString)
+      )
     )
+  }
+
+  def getStartOfDay(s: Long) = {
+    val ldt = Instant
+      .ofEpochSecond(s)
+      .atZone(ZoneId.of("UTC"))
+      .toLocalDateTime
+      .`with`(LocalTime.MIN)
+      .toEpochSecond(ZoneOffset.UTC)
+    ldt
   }
 
   def getStockData(
       symbol: String,
       config: YahooStockConfig
   ): IO[List[DayData]] = {
+
+    if (config.end.toInt - config.start.toInt < 3600 * 24) {
+      IO.pure(List.empty)
+    }
     val stockData =
       DownloaderYahoo.downloadStockData(symbol, config).map(_.toOption)
     val stockDataList = stockData.map(s =>
@@ -78,5 +104,5 @@ object SyncLatestDataWithYahooFinance extends App {
     stockDataList
   }
 
-  syncData().unsafeRunSync()
+  syncData().compile.drain.unsafeRunSync()
 }
