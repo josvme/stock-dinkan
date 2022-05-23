@@ -28,6 +28,16 @@
 
 [x] Implement trend template from mark minervini
 
+[] Write tests for SyncLatestDataWithYahooFinance as it doesn't work well on Sundays
+
+[] Write analysis where volume reduces a lot and price skates the 50DMA and 21DMA
+
+[] Do some data analysis to question CANSLIMs and other assumptions
+
+[] Cup and handle finder
+
+[] Tight flag finder
+
 [x] Implement fundamental data from yfinance (Python)
 
 [x] Implement stock data from yahoo finance as data from Alpaca is not split adjusted
