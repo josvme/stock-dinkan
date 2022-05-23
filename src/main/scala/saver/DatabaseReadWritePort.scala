@@ -29,7 +29,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
   // lets take values only from then
   def find(symbol: String): F[List[DayData]] = {
     val t =
-      sql"select * from dayvalues where symbol = $symbol AND stime > 1628886400000"
+      sql"select * from dayvalues where symbol = $symbol AND stime > 1628886400 order by stime desc"
         .query[DayData]
         .to[List]
     t.transact(xa)
