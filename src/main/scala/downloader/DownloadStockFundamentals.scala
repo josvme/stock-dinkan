@@ -9,7 +9,6 @@ import io.circe.optics.JsonPath._
 import io.circe.parser.parse
 import migrations.JdbcDatabaseConfig
 import saver.DatabaseReadWritePort
-import transformers.JsonToDayData
 
 import java.io.File
 import scala.concurrent.duration._

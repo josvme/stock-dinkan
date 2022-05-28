@@ -11,7 +11,14 @@ import transformers.JsonToDayData
 import cats.implicits._
 import fs2.Stream
 
-import java.time.{DayOfWeek, Instant, LocalTime, ZoneId, ZoneOffset}
+import java.time.{
+  DayOfWeek,
+  Instant,
+  LocalDateTime,
+  LocalTime,
+  ZoneId,
+  ZoneOffset
+}
 import scala.concurrent.duration.DurationInt
 
 object SyncLatestDataWithYahooFinance extends App {
@@ -31,7 +38,6 @@ object SyncLatestDataWithYahooFinance extends App {
   def syncData() = {
     // get all latest data from DB for a stock and then sync it with the latest date
     val currentTime = Instant.now()
-    import java.time.LocalTime
     import java.time.LocalDateTime
 
     val now = LocalDateTime.now() //.`with`(LocalTime.MAX)
@@ -63,7 +69,8 @@ object SyncLatestDataWithYahooFinance extends App {
       symbol: String,
       config: YahooStockConfig
   ): IO[List[Option[Int]]] = {
-    val dayDatas = getStockData(symbol, config)
+    val combined = getStockDataDownloadConfig(symbol, config)
+    val dayDatas = downloadStockData(combined._1, combined._2)
     val writes = for {
       dayData <- dayDatas
       port <- dbPort
@@ -113,31 +120,39 @@ object SyncLatestDataWithYahooFinance extends App {
     (config.end.toInt - config.start.toInt <= 3600 * 24) || (config.end.toLong - config.start.toLong) < (60 * 60 * 24 * 3) && startDate.getDayOfWeek == DayOfWeek.FRIDAY
   }
 
-  def getStockData(
+  def isTradingHappeningNow(time: LocalDateTime): Boolean = {
+    (time.getDayOfWeek != DayOfWeek.SATURDAY && time.getDayOfWeek != DayOfWeek.SUNDAY && (time.getHour >= 14 && time.getMinute >= 30) && (time.getHour <= 20))
+  }
+
+  def getStockDataDownloadConfig(
       symbol: String,
       config: YahooStockConfig
-  ): IO[List[DayData]] = {
-    if (dataAlreadyDownloaded(config)) {
-      IO.pure(List.empty)
-    } else {
-      val endTime = Instant
-        .ofEpochSecond(config.end.toLong)
-        .atZone(ZoneId.of("UTC"))
-        .toLocalDateTime
-        .`with`(LocalTime.MAX)
-      val newConfig = YahooStockConfig(
-        "1d",
-        config.start,
-        endTime.toEpochSecond(ZoneOffset.UTC).toString
-      )
-      val stockData =
-        DownloaderYahoo.downloadStockData(symbol, newConfig).map(_.toOption)
-      val stockDataList = stockData.map(s =>
-        s.map(ss => JsonToDayData.parseJson(ss, symbol))
-          .getOrElse(List[DayData]())
-      )
-      stockDataList
+  ): (String, YahooStockConfig) = {
+    var currentTime = Instant
+      .ofEpochSecond(config.end.toLong)
+      .atZone(ZoneId.of("UTC"))
+      .toLocalDateTime
+
+    if (isTradingHappeningNow(currentTime)) {
+      currentTime = currentTime.`with`(LocalTime.MIN)
     }
+
+    val newConfig = YahooStockConfig(
+      "1d",
+      config.start,
+      currentTime.toEpochSecond(ZoneOffset.UTC).toString
+    )
+    (symbol, newConfig)
+  }
+
+  private def downloadStockData(symbol: String, newConfig: YahooStockConfig) = {
+    val stockData =
+      DownloaderYahoo.downloadStockData(symbol, newConfig).map(_.toOption)
+    val stockDataList = stockData.map(s =>
+      s.map(ss => JsonToDayData.parseJson(ss, symbol))
+        .getOrElse(List[DayData]())
+    )
+    stockDataList
   }
 
   syncData().compile.drain.unsafeRunSync()
