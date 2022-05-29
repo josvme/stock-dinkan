@@ -1,7 +1,7 @@
 package saver
 
 import cats.Monad
-import cats.effect.{IO, Sync}
+import cats.effect.{IO, Async}
 import cats.implicits._
 import doobie._
 import doobie.implicits._
@@ -24,7 +24,7 @@ object DatabaseReadWritePort {
   }
 }
 
-class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
+class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
   // 1628886400000 => Fri Aug 13 2021 20:26:40 GMT+0000
   // lets take values only from then
   def find(symbol: String): F[List[DayData]] = {
@@ -66,6 +66,33 @@ class DatabaseReadWritePort[F[+_]: Monad: Sync](xa: Transactor.Aux[F, Unit]) {
     println(q.query.sql)
     println(d)
     val qq = q.update.run.transact(xa)
+    qq.map(Option(_))
+  }
+
+  def writeDayDataList(d: List[DayData]): F[Option[Int]] = {
+    val q =
+      "insert into dayvalues(symbol, stime, sopen, sclose, low, high, volume, trade_count, vwap) values (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING"
+    val numberOfRows = {
+      Update[(String, Long, Double, Double, Double, Double, Long, Int, Double)](
+        q
+      ).updateMany(
+        d.map(d =>
+          (
+            d.symbol,
+            d.stime,
+            d.sopen,
+            d.sclose,
+            d.low,
+            d.high,
+            d.volume,
+            d.trade_count,
+            d.vwap
+          )
+        )
+      )
+    }
+    val qq = numberOfRows.transact(xa)
+    println(d.headOption)
     qq.map(Option(_))
   }
 
