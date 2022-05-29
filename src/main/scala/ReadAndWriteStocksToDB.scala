@@ -34,7 +34,7 @@ object ReadAndWriteStocksToDB extends App {
               val symbol = file.getName.stripSuffix(".json")
               val json = JsonToDayData
                 .parseJson(contents, symbol)
-              val writeJson = json.map(port.writeDayData).sequence
+              val writeJson = port.writeDayDataList(json)
               writeJson
             })
             .compile
