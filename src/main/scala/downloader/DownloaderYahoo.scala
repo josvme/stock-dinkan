@@ -22,7 +22,11 @@ object DownloaderYahoo {
           uri"${RequestConfigYahoo.YAHOO_BASE_URL}/$ticker?interval=${config.timeFrame}&period1=${config.start}&period2=${config.end}&includePrePost=False&events=div%2Csplits"
           //https://query1.finance.yahoo.com/v8/finance/chart/LTHM?period1=1434837600&period2=1649432581&useYfid=true&interval=1d&includePrePost=true&events=div|split|earn&lang=en-US&region=US&crumb=3ZAhcXx5tlP&corsDomain=finance.yahoo.com"
         )
-        .response(asFile(new File(fileLocation)))
+        .response({
+          val f = new File(fileLocation)
+          f.delete()
+          asFile(f)
+        })
 
       val response = request.send(backend)
       response.map(_.body)
