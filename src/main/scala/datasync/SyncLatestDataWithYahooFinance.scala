@@ -37,11 +37,10 @@ object SyncLatestDataWithYahooFinance extends App {
 
   def syncData() = {
     // get all latest data from DB for a stock and then sync it with the latest date
+    // It is in UTC
     val currentTime = Instant.now()
-    import java.time.LocalDateTime
 
-    val now = LocalDateTime.now() //.`with`(LocalTime.MAX)
-    val epoch = now.toEpochSecond(ZoneOffset.UTC)
+    val epoch = currentTime.toEpochMilli() / 1000 //.`with`(LocalTime.MAX)
     val allStocks = dbPort.flatMap(_.getAllStocks)
     val allStocksStream = Stream.eval(allStocks).flatMap(Stream.emits)
     val allStocksPeriods =
@@ -121,7 +120,12 @@ object SyncLatestDataWithYahooFinance extends App {
   }
 
   def isTradingHappeningNow(time: LocalDateTime): Boolean = {
-    (time.getDayOfWeek != DayOfWeek.SATURDAY && time.getDayOfWeek != DayOfWeek.SUNDAY && (time.getHour >= 14 && time.getMinute >= 30) && (time.getHour <= 20))
+    val isTradingDay =
+      time.getDayOfWeek != DayOfWeek.SATURDAY && time.getDayOfWeek != DayOfWeek.SUNDAY
+    val insideTradingTime =
+      ((time.getHour == 14 && time.getMinute >= 30) || (time.getHour > 14)) && (time.getHour <= 20)
+
+    isTradingDay && insideTradingTime
   }
 
   def getStockDataDownloadConfig(
