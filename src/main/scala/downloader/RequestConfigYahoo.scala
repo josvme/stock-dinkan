@@ -12,7 +12,7 @@ object YahooStockConfig {
   def getConfig = {
     val timeFrame = "1d"
     val start = dateTimeStringToEpoch("2020/03/15", "yyyy/MM/dd")
-    val end = dateTimeStringToEpoch("2022/05/28", "yyyy/MM/dd")
+    val end = dateTimeStringToEpoch("2022/05/31", "yyyy/MM/dd")
 
     YahooStockConfig(timeFrame, start.toString, end.toString)
   }
