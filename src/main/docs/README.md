@@ -41,4 +41,10 @@
 
 You can get all stock symbols from [here](https://stockanalysis.com/stocks/)
 To be exact this [url](https://stockanalysis.com/_next/data/NcayYmKtpNDZ0pDPfBaPk/stocks.json)
+You can get all stock symbols from US Market[here](https://www.nasdaq.com/market-activity/stocks/screener)
+
+Blank check companies have no earnings
+```sql
+select symbol from fundamentals where data @> '{"ebitda": null}'
+```
 
