@@ -164,7 +164,7 @@ object Indicators {
         o + (d.stime -> d)
     })
 
-    val combinedKeys = indexHash.keys ++ stocksHash.keys
+    val combinedKeys = (indexHash.keys ++ stocksHash.keys).toList.sorted
     var combinedStockData = List[TimeBasedStockCompareModel]()
     for (key <- combinedKeys) {
       if (indexHash.contains(key) && stocksHash.contains(key)) {
