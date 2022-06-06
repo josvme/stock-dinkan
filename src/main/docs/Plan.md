@@ -34,6 +34,10 @@
 
 [x] Write tests for SyncLatestDataWithYahooFinance as it doesn't work well on Sundays
 
+[] Build an API
+
+[] Build UI - Embed TV (https://www.tradingview.com/widget/advanced-chart/)
+
 [] Write analysis where volume reduces a lot and price skates the 50DMA and 21DMA
 
 [] Do some data analysis to question CANSLIMs and other assumptions
@@ -51,10 +55,6 @@
 [] Write an integration test
 
 [] Build Cronjob server
-
-[] Build an API
-
-[] Build UI
 
 [] Add more unittests
 

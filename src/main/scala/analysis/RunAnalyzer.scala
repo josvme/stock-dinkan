@@ -1,7 +1,6 @@
 package analysis
 
 import cats.effect.IO
-import cats.implicits._
 import cats.effect.unsafe.implicits.global
 import doobie.util.transactor.Transactor.Aux
 import migrations.JdbcDatabaseConfig
@@ -14,39 +13,42 @@ object RunAnalyzer extends App {
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
   val ixa: IO[Aux[IO, Unit]] =
-    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor(jdbc))
+    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
-  val IndexWithAllStocks = ixa.flatMap(xa => {
-    val db = new DatabaseReadWritePort[IO](xa)
-    val allStocks = db.getAllStocksWithPriceMoreThanTen
-    val nasdaq = db.find("QQQ")
+  val ixaa = fs2.Stream.eval(ixa)
+  val IndexWithAllStocks = ixaa.flatMap(xa => {
+    val db = new DatabaseReadWritePort(xa)
+    val allStocks =
+      fs2.Stream
+        .eval(db.getAllStocksWithPriceMoreThanTen)
+        .flatMap(fs2.Stream.emits(_))
+    val nasdaq = fs2.Stream.eval(db.find("QQQ"))
     val allStocksData =
-      allStocks.flatMap(stocks => stocks.map(db.find(_)).sequence)
+      allStocks.evalMap(stock => db.find(stock))
 
-    for {
+    val tuples = for {
       nas <- nasdaq
       all <- allStocksData
     } yield (nas, all)
+
+    tuples
   })
 
-  val result = IndexWithAllStocks.map(IndexStockPair =>
-    IndexStockPair._2.map(stock => {
-      val p = Combiner.and(IncreasingWeeklyDailyRS, MinerviniScan)
-      //val p = IncreasingWeeklyDailyRS
-      val t = Indicators
-        .combineIndexAndStockData(
-          IndexStockPair._1.toVector,
-          stock.toVector
-        )
-        .map(x => (x.index, x.stocks))
-      println(p.name(), stock.head.symbol);
-      (
-        p.passAnalysis(t.map(_._1), t.map(_._2)),
-        stock.head.symbol
+  val result = IndexWithAllStocks.map(IndexStockPair => {
+    val p = Combiner.and(TightStockDetector, MinerviniScan)
+    //val p = IncreasingWeeklyDailyRS
+    val t = Indicators
+      .combineIndexAndStockData(
+        IndexStockPair._1.toVector,
+        IndexStockPair._2.toVector
       )
-    })
-  )
-  val filteredResult = result.map(stocks => stocks.filter(s => s._1))
+      .map(x => (x.index, x.stocks))
 
-  println(filteredResult.unsafeRunSync())
+    (p.passAnalysis(t.map(_._1), t.map(_._2)), t.headOption.map(_._2.symbol))
+  })
+
+  val filteredResult =
+    result.filter(stock => stock._1).map(t => { println(t._2); t._2 })
+
+  filteredResult.compile.toList.unsafeRunSync
 }

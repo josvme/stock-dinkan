@@ -155,11 +155,11 @@ object Indicators {
       index: Vector[DayData],
       stocks: Vector[DayData]
   ): Vector[TimeBasedStockCompareModel] = {
-    val indexHash = index.foldLeft(mutable.TreeMap[Long, DayData]())({
+    val indexHash = index.foldLeft(mutable.HashMap[Long, DayData]())({
       case (o, d) =>
         o + (d.stime -> d)
     })
-    val stocksHash = stocks.foldLeft(mutable.TreeMap[Long, DayData]())({
+    val stocksHash = stocks.foldLeft(mutable.HashMap[Long, DayData]())({
       case (o, d) =>
         o + (d.stime -> d)
     })
