@@ -11,9 +11,11 @@ import migrations.JdbcDatabaseConfig
 import models.DayData
 
 object DatabaseReadWritePort {
-  def buildTransactor(jdbcConfig: JdbcDatabaseConfig): Aux[IO, Unit] = {
+  def buildTransactor[F[_]: Async](
+      jdbcConfig: JdbcDatabaseConfig
+  ): Aux[F, Unit] = {
 
-    val xa: Aux[IO, Unit] = Transactor.fromDriverManager[IO](
+    val xa: Aux[F, Unit] = Transactor.fromDriverManager[F](
       jdbcConfig.driver,
       jdbcConfig.url,
       jdbcConfig.user.orNull,
