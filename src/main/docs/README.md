@@ -48,3 +48,7 @@ Blank check companies have no earnings
 select symbol from fundamentals where data @> '{"ebitda": null}'
 ```
 
+## Calling the API
+```bash
+http localhost:8080/analysis/tight-consolidation -v --timeout=900
+```

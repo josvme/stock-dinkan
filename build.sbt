@@ -32,6 +32,14 @@ val doobie = Seq(
   "org.tpolecat" %% "doobie-specs2" % "1.0.0-RC1" % "test", // Specs2 support for typechecking statements.
   "org.tpolecat" %% "doobie-scalatest" % "1.0.0-RC1" % "test" // ScalaTest support for typechecking statements.
 )
+
+val Http4sVersion = "1.0.0-M33"
+val http4s = Seq(
+  "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
+  "org.http4s" %% "http4s-circe" % Http4sVersion,
+  "org.http4s" %% "http4s-dsl" % Http4sVersion
+)
+
 addCommandAlias("run-db-migrations", "runMigrate")
 val commonSettings = Seq(
   organization := "me.josv",
@@ -53,7 +61,7 @@ val commonSettings = Seq(
     "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
     // for python interoperability
     "me.shadaj" %% "scalapy-core" % "0.5.1"
-  ) ++ circeDeps ++ doobie ++ fs2
+  ) ++ circeDeps ++ doobie ++ fs2 ++ http4s
 )
 
 // Load python
