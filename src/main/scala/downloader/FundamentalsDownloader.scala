@@ -20,8 +20,8 @@ object FundamentalsDownloader {
         val json = py.module("json")
         val data = yfinance.Ticker(ticker)
         val info = json.dumps(data.info).as[String]
-
         val path = Paths.get(fileLocation)
+        Files.delete(path)
         Files.write(path, info.getBytes)
         path.toFile
       }.toEither.leftMap(_.getMessage)

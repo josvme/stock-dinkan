@@ -37,6 +37,7 @@ object ReadAndWriteFundamentalStocksDataToDB extends App {
               val json = parse(contents).getOrElse(Json.Null)
               val symbol = file.getName.stripSuffix(".json")
               val writeJson = port.writeFundamentals(symbol, json)
+              println(symbol)
               writeJson
             })
             .compile
