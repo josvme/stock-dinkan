@@ -40,7 +40,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
   // Get only stocks where price > 10
   def getAllStocksWithPriceMoreThanTen: F[List[String]] = {
     val t =
-      sql"select DISTINCT symbol from dayvalues WHERE high > 10"
+      sql"select DISTINCT symbol from dayvalues WHERE high > 10 order by symbol"
         .query[String]
         .to[List]
     t.transact(xa)
