@@ -116,7 +116,7 @@ object SyncLatestDataWithYahooFinance extends App {
       .toLocalDateTime
 
     // Return true if less than a day old or if data is less than 3 days old and last downloaded day was a friday
-    (config.end.toInt - config.start.toInt <= 3600 * 24) || (config.end.toLong - config.start.toLong) < (60 * 60 * 24 * 3) && startDate.getDayOfWeek == DayOfWeek.FRIDAY
+    (config.end.toInt - config.start.toInt <= 3600 * 24) || ((config.end.toLong - config.start.toLong) < (60 * 60 * 24 * 3) && startDate.getDayOfWeek == DayOfWeek.FRIDAY)
   }
 
   def isTradingHappeningNow(time: LocalDateTime): Boolean = {
