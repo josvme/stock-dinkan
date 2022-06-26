@@ -15,6 +15,7 @@ import org.http4s.dsl.impl._
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.server._
+import org.http4s.server.middleware.CORS
 
 import scala.concurrent.duration.DurationInt
 
@@ -23,20 +24,22 @@ object Server extends IOApp {
   def analysisRoutes[F[_]: Monad] = {
     val dsl = Http4sDsl[F]
     import dsl._
-    HttpRoutes.of[F] {
+    val routes = HttpRoutes.of[F] {
       case GET -> Root / "analysis" / "tight-consolidation" => {
         val analysis = TightStockDetector
-        val results = RunAnalyzer
-          .runAndGetAnalysisResults(analysis)
-          .compile
-          .toList
-          .unsafeRunSync()
-          .filter(_.isDefined)
-          .map(_.get)
+        // val results = RunAnalyzer
+        //   .runAndGetAnalysisResults(analysis)
+        //   .compile
+        //   .toList
+        //   .unsafeRunSync()
+        //   .filter(_.isDefined)
+        //   .map(_.get)
 
+        val results = List("A", "AAPL")
         Ok(results.asJson)
       }
     }
+    CORS.policy.withAllowOriginAll(routes)
   }.orNotFound
 
   override def run(args: List[String]): IO[ExitCode] = {
