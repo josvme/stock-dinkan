@@ -7,6 +7,7 @@ import com.raquo.airstream.web.AjaxEventStream.AjaxStreamError
 import org.scalajs.dom
 import com.raquo.laminar.api.L._
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import org.scalajs.dom.html
 
 import scala.scalajs.js.JSON
 
@@ -18,14 +19,13 @@ object Client {
 
   val chartElementsNode = div(
     input(
-      onMountFocus,
       placeholder := "Enter symbol",
       inContext { thisNode => onInput.map(_ => thisNode.ref.value) --> nameVar }
     ),
     span(
       child.text <-- nameVar.signal.map(_.toUpperCase)
     ),
-    // This is a hacky solution
+    //  This is a hacky solution
     span(
       child.text <-- nameVar.signal.map(x => {
         new TradingViewWidget(tradingViewParams(x.toUpperCase))
@@ -44,11 +44,47 @@ object Client {
     val list = JSON.parse(s).asInstanceOf[js.Array[String]]
     list.toSeq.map(x =>
       li(
+        onKeyUp.mapTo(1) --> diffBus,
+        tabIndex := 0,
         x,
+        idAttr := list.indexOf(x).toString,
         inContext(thisNode => onClick.mapTo(getSymbol(thisNode)) --> nameVar)
       )
     )
   }
+
+  private val stockListNodes: ReactiveHtmlElement[html.Div] = div(
+    ul(
+      onMountFocus,
+      cls("stock-list"),
+      children <-- stockListVar.signal
+        .map(renderList)
+    )
+  )
+
+  val diffBus = new EventBus[Int]
+
+  val up = stockListNodes
+    .events(onKeyUp)
+    .filter(x => { println(x); (x.key == "ArrowUp" || x.key == "ArrowDown") })
+    .map(x => {
+      x.key match {
+        case "ArrowDown" => -1
+        case "ArrowUp"   => 1
+      }
+    })
+
+  up --> diffBus
+
+  val upDown = diffBus.events
+    .foldLeft(initial = 0)(_ + _)
+    .map(i => {
+      println(i)
+      val list =
+        JSON.parse(stockListVar.now()).asInstanceOf[js.Array[String]].toSeq
+      list(i)
+    })
+  upDown --> nameVar
 
   val stockElementsNode = div(
     button(
@@ -69,13 +105,7 @@ object Client {
         )
       }
     ),
-    div(
-      ul(
-        cls("stock-list"),
-        children <-- stockListVar.signal
-          .map(renderList)
-      )
-    )
+    stockListNodes
   )
 
   // In most other examples, containerNode will be set to this behind the scenes

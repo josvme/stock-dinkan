@@ -12,3 +12,5 @@ lazy val client = (project in file("."))
       "com.raquo" %%% "laminar" % "0.14.2" // Requires Scala.js >= 1.7.1
     )
   )
+
+Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) }
