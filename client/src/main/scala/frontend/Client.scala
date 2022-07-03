@@ -14,8 +14,11 @@ import scala.scalajs.js.JSON
 object Client {
 
   val nameVar = Var(initial = "AAPL")
+  val zipValueSignal = nameVar.signal
+  val zipInputObserver = nameVar.writer
   val url = "http://localhost:8080/analysis/tight-consolidation"
-  val stockListVar = Var("")
+  val stockListVar = Var("[]")
+  val diffBus = new EventBus[Int]()
 
   val chartElementsNode = div(
     input(
@@ -44,8 +47,6 @@ object Client {
     val list = JSON.parse(s).asInstanceOf[js.Array[String]]
     list.toSeq.map(x =>
       li(
-        onKeyUp.mapTo(1) --> diffBus,
-        tabIndex := 0,
         x,
         idAttr := list.indexOf(x).toString,
         inContext(thisNode => onClick.mapTo(getSymbol(thisNode)) --> nameVar)
@@ -54,37 +55,35 @@ object Client {
   }
 
   private val stockListNodes: ReactiveHtmlElement[html.Div] = div(
+    windowEvents.onKeyDown
+    .filter(x => { (x.key == "ArrowUp" || x.key == "ArrowDown") })
+    .map(x => {x.preventDefault(); x})
+    .map(x => {
+      println(x);
+      x.key match {
+        case "ArrowDown" => 1
+        case "ArrowUp"   => 1
+      }
+    }) --> diffBus,
     ul(
       onMountFocus,
       cls("stock-list"),
       children <-- stockListVar.signal
         .map(renderList)
+    ),
+    // All observables should be somehow attached to dom for it to work. Maybe because of ownership
+    span(
+      diffBus.events.foldLeft(0)(_+_).map(x => {
+      x match {
+        case 0 => "AAPL"
+        case 1 => "A"
+        case 2 => "B"
+        case 3 => "C"
+        case 4 => "D"
+        case 5 => "E"
+      }}) --> zipInputObserver
     )
   )
-
-  val diffBus = new EventBus[Int]
-
-  val up = stockListNodes
-    .events(onKeyUp)
-    .filter(x => { println(x); (x.key == "ArrowUp" || x.key == "ArrowDown") })
-    .map(x => {
-      x.key match {
-        case "ArrowDown" => -1
-        case "ArrowUp"   => 1
-      }
-    })
-
-  up --> diffBus
-
-  val upDown = diffBus.events
-    .foldLeft(initial = 0)(_ + _)
-    .map(i => {
-      println(i)
-      val list =
-        JSON.parse(stockListVar.now()).asInstanceOf[js.Array[String]].toSeq
-      list(i)
-    })
-  upDown --> nameVar
 
   val stockElementsNode = div(
     button(
