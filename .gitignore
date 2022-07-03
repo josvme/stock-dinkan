@@ -1,5 +1,14 @@
 target/
 .idea/
+.vscode/
+.bloop/
+.bsp/
+.lh/
+.metals/
 stock-files/*.json
 stock-fundamental-files/*.json
 env/
+project/metals.sbt
+project/project/project/metals.sbt
+project/project/metals.sbt
+src/main/scratch-pad/tryout.sc
