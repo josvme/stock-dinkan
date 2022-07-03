@@ -39,7 +39,6 @@ object Client {
   private def getSymbol(
       e: ReactiveHtmlElement[org.scalajs.dom.html.LI]
   ): String = {
-    println(e.ref.textContent)
     e.ref.textContent
   }
 
@@ -56,15 +55,14 @@ object Client {
 
   private val stockListNodes: ReactiveHtmlElement[html.Div] = div(
     windowEvents.onKeyDown
-    .filter(x => { (x.key == "ArrowUp" || x.key == "ArrowDown") })
-    .map(x => {x.preventDefault(); x})
-    .map(x => {
-      println(x);
-      x.key match {
-        case "ArrowDown" => 1
-        case "ArrowUp"   => 1
-      }
-    }) --> diffBus,
+      .filter(x => { (x.key == "ArrowUp" || x.key == "ArrowDown") })
+      .map(x => { x.preventDefault(); x })
+      .map(x => {
+        x.key match {
+          case "ArrowDown" => 1
+          case "ArrowUp"   => -1
+        }
+      }) --> diffBus,
     ul(
       onMountFocus,
       cls("stock-list"),
@@ -73,15 +71,16 @@ object Client {
     ),
     // All observables should be somehow attached to dom for it to work. Maybe because of ownership
     span(
-      diffBus.events.foldLeft(0)(_+_).map(x => {
-      x match {
-        case 0 => "AAPL"
-        case 1 => "A"
-        case 2 => "B"
-        case 3 => "C"
-        case 4 => "D"
-        case 5 => "E"
-      }}) --> zipInputObserver
+      diffBus.events
+        .foldLeft(0)(_ + _)
+        .map(x => {
+
+          val l =
+            JSON.parse(stockListVar.now()).asInstanceOf[js.Array[String]]
+
+          l(Math.floorMod(x, l.length))
+
+        }) --> zipInputObserver
     )
   )
 
