@@ -1,7 +1,5 @@
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.implicits._
-import doobie.util.transactor.Transactor.Aux
 import filesources.DataSource
 import fs2.Stream
 import migrations.JdbcDatabaseConfig
@@ -16,8 +14,8 @@ object ReadAndWriteStocksToDB extends App {
   val allFiles = DataSource.getAllStockFileNames[IO]
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
-  val ixa: IO[Aux[IO, Unit]] =
-    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor(jdbc))
+  val ixa =
+    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
   def getStockName(getName: String) = {
     getName.takeWhile(x => x != '.')

@@ -123,7 +123,7 @@ object Client {
     js.Dynamic.literal(
       autosize = true,
       symbol = symbol,
-      interval = "D",
+      interval = "W",
       timezone = "Etc/UTC",
       theme = "light",
       style = "1",
