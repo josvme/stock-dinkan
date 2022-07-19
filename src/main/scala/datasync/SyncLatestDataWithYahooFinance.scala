@@ -26,8 +26,8 @@ object SyncLatestDataWithYahooFinance extends App {
   println("Welcome to StockDinkan Yahoo Finance Data Sync")
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
-  val ixa: IO[Aux[IO, Unit]] =
-    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor(jdbc))
+  val ixa =
+    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
   val dbPort: IO[DatabaseReadWritePort[IO]] = ixa
     .map(xa => {

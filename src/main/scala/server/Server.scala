@@ -27,15 +27,15 @@ object Server extends IOApp {
     val routes = HttpRoutes.of[F] {
       case GET -> Root / "analysis" / "tight-consolidation" => {
         val analysis = TightStockDetector
-        //val results = RunAnalyzer
-        //  .runAndGetAnalysisResults(analysis)
-        //  .compile
-        //  .toList
-        //  .unsafeRunSync()
-        //  .filter(_.isDefined)
-        //  .map(_.get)
+        val results = RunAnalyzer
+          .runAndGetAnalysisResults(analysis)
+          .compile
+          .toList
+          .unsafeRunSync()
+          .filter(_.isDefined)
+          .map(_.get)
 
-        val results = List("AAPL", "MSFT", "A", "B", "C", "D")
+        //val results = List("AAPL", "MSFT", "A", "B", "C", "D")
 
         Ok(results.asJson)
       }

@@ -27,6 +27,7 @@ val circeDeps = Seq(
 ).map(_ % circeVersion)
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core" % "1.0.0-RC1",
+  "org.tpolecat" %% "doobie-hikari" % "1.0.0-RC1",
   "org.tpolecat" %% "doobie-postgres" % "1.0.0-RC1", // Postgres driver 42.3.1 + type mappings.
   "org.tpolecat" %% "doobie-postgres-circe" % "1.0.0-RC1",
   "org.tpolecat" %% "doobie-specs2" % "1.0.0-RC1" % "test", // Specs2 support for typechecking statements.

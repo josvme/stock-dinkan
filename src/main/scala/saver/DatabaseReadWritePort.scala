@@ -1,9 +1,10 @@
 package saver
 
 import cats.Monad
-import cats.effect.{IO, Async}
+import cats.effect.{Async, IO, Resource}
 import cats.implicits._
 import doobie._
+import doobie.hikari.HikariTransactor
 import doobie.implicits._
 import doobie.util.transactor.Transactor.Aux
 import io.circe.Json
@@ -13,20 +14,29 @@ import models.DayData
 object DatabaseReadWritePort {
   def buildTransactor[F[_]: Async](
       jdbcConfig: JdbcDatabaseConfig
-  ): Aux[F, Unit] = {
+  ): Resource[F, HikariTransactor[F]] = {
+    // Resource yielding a transactor configured with a bounded connect EC and an unbounded
+    // transaction EC. Everything will be closed and shut down cleanly after use.
+    val transactor: Resource[F, HikariTransactor[F]] =
+      for {
+        ce <- ExecutionContexts.fixedThreadPool[F](4) // our connect EC
+        xa <- HikariTransactor.newHikariTransactor[F](
+          jdbcConfig.driver, // driver classname
+          jdbcConfig.url, // connect URL
+          jdbcConfig.user.orNull, // username
+          jdbcConfig.password.orNull, // password
+          ce // await connection here
+        )
+      } yield xa
 
-    val xa: Aux[F, Unit] = Transactor.fromDriverManager[F](
-      jdbcConfig.driver,
-      jdbcConfig.url,
-      jdbcConfig.user.orNull,
-      jdbcConfig.password.orNull
-    )
-
-    xa
+    transactor
   }
+
 }
 
-class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
+class DatabaseReadWritePort[F[+_]: Monad: Async](
+    xa: Resource[F, HikariTransactor[F]]
+) {
   // 1628886400000 => Fri Aug 13 2021 20:26:40 GMT+0000
   // lets take values only from then
   def find(symbol: String): F[List[DayData]] = {
@@ -34,7 +44,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
       sql"select * from dayvalues where symbol = $symbol AND stime > 1628886400 order by stime desc"
         .query[DayData]
         .to[List]
-    t.transact(xa)
+    xa.use(x => t.transact(x))
   }
 
   // Get only stocks where price > 10
@@ -43,7 +53,8 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
       sql"select DISTINCT symbol from dayvalues WHERE high > 10 order by symbol"
         .query[String]
         .to[List]
-    t.transact(xa)
+
+    xa.use(x => t.transact(x))
   }
 
   def getAllStocks: F[List[String]] = {
@@ -51,7 +62,8 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
       sql"select DISTINCT symbol from dayvalues order by symbol"
         .query[String]
         .to[List]
-    t.transact(xa)
+
+    xa.use(x => t.transact(x))
   }
 
   def getLatestPointForStock(symbol: String): F[Long] = {
@@ -59,7 +71,8 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
       sql"select max(stime) from dayvalues where symbol = $symbol"
         .query[Long]
         .unique
-    t.transact(xa)
+
+    xa.use(x => t.transact(x))
   }
 
   def writeDayData(d: DayData): F[Option[Int]] = {
@@ -67,7 +80,8 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
       sql"insert into dayvalues(symbol, stime, sopen, sclose, low, high, volume, trade_count, vwap) values (${d.symbol}, ${d.stime}, ${d.sopen}, ${d.sclose}, ${d.low}, ${d.high}, ${d.volume}, ${d.trade_count}, ${d.vwap}) ON CONFLICT DO NOTHING"
     println(q.query.sql)
     println(d)
-    val qq = q.update.run.transact(xa)
+
+    val qq = xa.use { x => q.update.run.transact(x) }
     qq.map(Option(_))
   }
 
@@ -93,7 +107,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
         )
       )
     }
-    val qq = numberOfRows.transact(xa)
+    val qq = xa.use { x => numberOfRows.transact(x) }
     println(d.headOption)
     qq.map(Option(_))
   }
@@ -103,7 +117,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](xa: Transactor.Aux[F, Unit]) {
     implicit val meta: Meta[Json] = new Meta(pgDecoderGet, pgEncoderPut)
     val q =
       sql"insert into fundamentals(symbol, data) values (${symbol}, $data) ON CONFLICT (symbol) DO UPDATE SET data = ${data}"
-    val qq = q.update.run.transact(xa)
+    val qq = xa.use { x => q.update.run.transact(x) }
     qq.map(Option(_))
   }
 }

@@ -64,8 +64,8 @@ object DownloadStockList extends App {
 
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
-  val ixa: IO[Aux[IO, Unit]] =
-    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor(jdbc))
+  val ixa =
+    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
   val xxxx = ixa.flatMap(xa => {
     val db = new DatabaseReadWritePort[IO](xa)
