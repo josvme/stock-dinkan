@@ -83,10 +83,29 @@ object SyncLatestDataWithYahooFinance extends App {
       symbol: String,
       endData: Long
   ): IO[(String, YahooStockConfig)] = {
-    val currentTime = endData
+    val startDate = Instant
+      .ofEpochSecond(endData)
+      .atZone(ZoneId.of("UTC"))
+      .toLocalDateTime
+
+    val currentHour = startDate.getHour
+    val currentDay = startDate.getDayOfWeek
+    var currentTime = endData
     val latestTimeInStock: IO[Long] =
       dbPort.flatMap(_.getLatestPointForStock(symbol))
+    val notInTradingTime = (currentHour < 13 || currentHour > 21)
+    val notInTradingDays =
+      currentDay == DayOfWeek.SUNDAY || currentDay == DayOfWeek.SATURDAY
 
+    if (notInTradingDays || notInTradingTime) {
+      currentTime = endData
+    } else {
+      currentTime = startDate
+        .minusDays(1)
+        .`with`(LocalTime.MAX)
+        .toInstant(ZoneOffset.UTC)
+        .getEpochSecond
+    }
     latestTimeInStock.map(l =>
       (
         symbol,
