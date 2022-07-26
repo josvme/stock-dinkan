@@ -36,6 +36,8 @@
 
 [x] Add connection pooling and parallelism to Analyzer (Got from 10min to 5min)
 
+[] Add an SQL queries for analysis
+
 [] Build an API
 
 [] Build UI - Embed TV (https://www.tradingview.com/widget/advanced-chart/)
@@ -99,4 +101,4 @@
 * No SMA/EMA etc
 * NO RS Line
 * Cumbersome to use UI
-* Stock splits
+* Stock splits [Will run it once a week]

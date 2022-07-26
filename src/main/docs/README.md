@@ -53,3 +53,11 @@ select symbol from fundamentals where data @> '{"ebitda": null}'
 ```bash
 http localhost:8080/analysis/tight-consolidation -v --timeout=900
 ```
+
+## Clickhouse setup
+[See](https://clickhouse.com/learn/lessons/postgres-clickhouse-replication/)
+Also [JSON](https://clickhouse.com/docs/en/sql-reference/data-types/json/), needs latest version
+[Docker](https://github.com/rongfengliang/clickhouse-docker-compose/blob/master/docker-compose.yaml)
+[Config](https://kb.altinity.com/altinity-kb-setup-and-maintenance/altinity-kb-clickhouse-in-docker/)
+[Driver](https://github.com/ClickHouse/clickhouse-jdbc)
+clickhouse has wire compatibility with postgres. Can act like postgres

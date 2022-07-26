@@ -16,7 +16,40 @@ services:
     networks:
       - postgres
     restart: unless-stopped
-  
+
+  clickhouse-server:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-server
+    hostname: clickhouse-server
+    volumes:
+      - clickhouse:/var/lib/clickhouse
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+      - "9009:9009"
+    networks:
+      - postgres
+    restart: always
+    tty: true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 262144
+        hard: 262144
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    cap_add:
+      - IPC_LOCK
+  clickhouse-client:
+    image: clickhouse/clickhouse-client
+    command: ['--host', 'clickhouse-server']
+    networks:
+      - postgres
+
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -38,4 +71,5 @@ networks:
 
 volumes:
   postgres:
+  clickhouse:
   pgadmin:
