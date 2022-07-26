@@ -10,6 +10,7 @@ import migrations.JdbcDatabaseConfig
 import saver.DatabaseReadWritePort
 
 import java.io.File
+import java.time.Instant
 import scala.concurrent.duration._
 import scala.io.Source
 import scala.util.{Failure, Success, Using}
@@ -17,6 +18,7 @@ import scala.util.{Failure, Success, Using}
 object DownloadStockFundamentals extends App {
 
   println("Welcome to StockDinkan Fundamentals Downloader")
+  val startTime = Instant.now.getEpochSecond
   val stockListFile = s"./stocklist/stocks.json"
   val stocks = IO.delay({
     val stockFile = Using(Source.fromFile(stockListFile)) { s =>
@@ -76,7 +78,7 @@ object DownloadStockFundamentals extends App {
       t.map(tt =>
         tt._1.map(stockContents => {
           val json = parse(stockContents).getOrElse(Json.Null)
-          db.writeFundamentals(tt._2, json).unsafeRunSync()
+          db.writeFundamentals(tt._2, json, startTime).unsafeRunSync()
         })
       )
     )
