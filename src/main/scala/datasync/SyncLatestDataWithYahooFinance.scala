@@ -47,7 +47,7 @@ object SyncLatestDataWithYahooFinance extends App {
     // We want to rate limit only stocks that should be downloaded
     val allStocksPeriodStreamPerSecond = allStocksPeriods
       .filter({ case (_, config) => !dataAlreadyDownloaded(config) })
-      .metered(1.second)
+      .metered(1000.millisecond)
     val fetchedStocks = allStocksPeriodStreamPerSecond.parEvalMap(1)(period =>
       getAndWriteStockData(period._1, period._2)
     )
@@ -72,7 +72,7 @@ object SyncLatestDataWithYahooFinance extends App {
     val writes = for {
       dayData <- dayDatas
       port <- dbPort
-      v <- dayData.map(port.writeDayData).sequence
+      v <- (port.writeDayDataList(dayData))
     } yield (v)
 
     println(symbol)
