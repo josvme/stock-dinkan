@@ -41,6 +41,7 @@ object StockList {
         x.flatMap(v => v.map(vv => root.symbol.string.getOption(vv)).sequence)
       )
       .map(x => x.getOrElse(Vector()))
+      .map(list => list.sorted)
     symbols
   }
 }
