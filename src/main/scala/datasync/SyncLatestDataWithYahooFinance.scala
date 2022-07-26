@@ -2,8 +2,7 @@ package datasync
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import doobie.util.transactor.Transactor.Aux
-import downloader.{DownloaderYahoo, YahooStockConfig}
+import downloader.{DownloaderYahoo, StockList, YahooStockConfig}
 import migrations.JdbcDatabaseConfig
 import models.DayData
 import saver.DatabaseReadWritePort
@@ -41,7 +40,7 @@ object SyncLatestDataWithYahooFinance extends App {
     val currentTime = Instant.now()
 
     val epoch = currentTime.toEpochMilli() / 1000 //.`with`(LocalTime.MAX)
-    val allStocks = dbPort.flatMap(_.getAllStocks)
+    val allStocks = StockList.getAllStocks()
     val allStocksStream = Stream.eval(allStocks).flatMap(Stream.emits)
     val allStocksPeriods =
       allStocksStream.evalMap(symbol => getDatePeriodsForStock(symbol, epoch))
@@ -85,7 +84,8 @@ object SyncLatestDataWithYahooFinance extends App {
       endData: Long
   ): IO[(String, YahooStockConfig)] = {
     val currentTime = endData
-    val latestTimeInStock = dbPort.flatMap(_.getLatestPointForStock(symbol))
+    val latestTimeInStock: IO[Long] =
+      dbPort.flatMap(_.getLatestPointForStock(symbol))
 
     latestTimeInStock.map(l =>
       (

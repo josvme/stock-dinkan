@@ -2,7 +2,6 @@ package downloader
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import doobie.util.transactor.Transactor.Aux
 import fs2.Stream
 import io.circe._
 import io.circe.optics.JsonPath._

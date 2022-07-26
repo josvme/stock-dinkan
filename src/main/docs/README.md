@@ -42,6 +42,7 @@
 You can get all stock symbols from [here](https://stockanalysis.com/stocks/)
 To be exact this [url](https://stockanalysis.com/_next/data/NcayYmKtpNDZ0pDPfBaPk/stocks.json)
 You can get all stock symbols from US Market[here](https://www.nasdaq.com/market-activity/stocks/screener)
+Via API is `https://api.nasdaq.com/api/screener/stocks?tableonly=true&limit=25&offset=0&download=true`
 
 Blank check companies have no earnings
 ```sql

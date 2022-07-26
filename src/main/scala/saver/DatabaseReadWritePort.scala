@@ -1,15 +1,16 @@
 package saver
 
 import cats.Monad
-import cats.effect.{Async, IO, Resource}
+import cats.effect.{Async, Resource}
 import cats.implicits._
 import doobie._
 import doobie.hikari.HikariTransactor
 import doobie.implicits._
-import doobie.util.transactor.Transactor.Aux
 import io.circe.Json
 import migrations.JdbcDatabaseConfig
 import models.DayData
+
+import cats.effect.unsafe.implicits.global
 
 object DatabaseReadWritePort {
   def buildTransactor[F[_]: Async](
@@ -31,7 +32,6 @@ object DatabaseReadWritePort {
 
     transactor
   }
-
 }
 
 class DatabaseReadWritePort[F[+_]: Monad: Async](
@@ -67,12 +67,14 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](
   }
 
   def getLatestPointForStock(symbol: String): F[Long] = {
+    // Wed Feb 26 2020 13:19:25 GMT+0000 is 1582723165
     val t =
-      sql"select max(stime) from dayvalues where symbol = $symbol"
+      sql"select coalesce(max(stime), 1582723165) from dayvalues where symbol = $symbol"
         .query[Long]
         .unique
 
-    xa.use(x => t.transact(x))
+    val k = xa.use(x => t.transact(x))
+    k
   }
 
   def writeDayData(d: DayData): F[Option[Int]] = {

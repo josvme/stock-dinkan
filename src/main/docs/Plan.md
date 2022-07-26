@@ -34,6 +34,8 @@
 
 [x] Write tests for SyncLatestDataWithYahooFinance as it doesn't work well on Sundays
 
+[x] Add connection pooling and parallelism to Analyzer (Got from 10min to 5min)
+
 [] Build an API
 
 [] Build UI - Embed TV (https://www.tradingview.com/widget/advanced-chart/)
@@ -95,3 +97,4 @@
 * No SMA/EMA etc
 * NO RS Line
 * Cumbersome to use UI
+* Stock splits
