@@ -87,7 +87,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](
     qq.map(Option(_))
   }
 
-  def writeDayDataList(d: List[DayData]): F[Option[Int]] = {
+  def writeDayDataList(d: List[DayData]): F[List[Option[Int]]] = {
     val q =
       "insert into dayvalues(symbol, stime, sopen, sclose, low, high, volume, trade_count, vwap) values (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING"
     val numberOfRows = {
@@ -110,8 +110,8 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](
       )
     }
     val qq = xa.use { x => numberOfRows.transact(x) }
-    println(d.headOption)
-    qq.map(Option(_))
+    println(d)
+    qq.map(x => List(Option(x)))
   }
 
   def writeFundamentals(
@@ -122,7 +122,7 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](
     import doobie.postgres.circe.jsonb.implicits._
     implicit val meta: Meta[Json] = new Meta(pgDecoderGet, pgEncoderPut)
     val q =
-      sql"insert into fundamentals(symbol, data, updated_time) values (${symbol}, $data, $time) ON CONFLICT (symbol) DO UPDATE SET data = ${data}"
+      sql"insert into fundamentals(symbol, data, updated_time) values (${symbol}, $data, $time) ON CONFLICT (symbol) DO UPDATE SET data = ${data}, updated_time = ${time}"
     val qq = xa.use { x => q.update.run.transact(x) }
     qq.map(Option(_))
   }
