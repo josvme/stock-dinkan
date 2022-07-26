@@ -114,11 +114,15 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](
     qq.map(Option(_))
   }
 
-  def writeFundamentals(symbol: String, data: Json): F[Option[Int]] = {
+  def writeFundamentals(
+      symbol: String,
+      data: Json,
+      time: Long
+  ): F[Option[Int]] = {
     import doobie.postgres.circe.jsonb.implicits._
     implicit val meta: Meta[Json] = new Meta(pgDecoderGet, pgEncoderPut)
     val q =
-      sql"insert into fundamentals(symbol, data) values (${symbol}, $data) ON CONFLICT (symbol) DO UPDATE SET data = ${data}"
+      sql"insert into fundamentals(symbol, data, updated_time) values (${symbol}, $data, $time) ON CONFLICT (symbol) DO UPDATE SET data = ${data}"
     val qq = xa.use { x => q.update.run.transact(x) }
     qq.map(Option(_))
   }
