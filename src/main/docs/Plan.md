@@ -60,6 +60,8 @@
 
 [] Add more unittests
 
+[] Tryout ClickHouse
+
 ## List of high-level tasks
 
 ### Bootstrapping
