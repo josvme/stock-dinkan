@@ -53,3 +53,7 @@ select symbol from fundamentals where data @> '{"ebitda": null}'
 ```bash
 http localhost:8080/analysis/tight-consolidation -v --timeout=900
 ```
+
+## PL language support for Postgres
+We can write custom functions in Java/Python for postgres. Python is officially supported.
+[See](https://www.postgresql.org/docs/9.1/external-pl.html)
