@@ -1,0 +1,3 @@
+package scratchpad
+
+object Tester {}

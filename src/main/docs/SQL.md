@@ -1,50 +1,88 @@
+# Calculate strongest industries in 5 days
 ```postgres-sql
-WITH 
-t as (select dayvalues.symbol as sym, *, row_number() over (partition by dayvalues.symbol order by stime desc) as rn 
-    from dayvalues
-    join fundamentals on dayvalues.symbol = fundamentals.symbol 
-    ),
-tt as (select *  from t 
-    where t.rn <= 7
-	order by sym asc
-	),
-avg_gain_with_industry as (
-	select avg((tt.sclose-tt.sopen)/tt.sopen) as avg_gain, tt.sym, jsonb_path_query(tt.data, '$.sector') as ind from tt group by tt.sym, ind order by avg_gain desc
-	),
-fastest_industry as (
-	select avg(avg_gain) as g, ind from avg_gain_with_industry group by ind
-)
-	select * from fastest_industry order by g desc ;
+WITH FORBIDDENSTOCKS AS
+	(SELECT DISTINCT SYMBOL
+		FROM DAYVALUES
+		WHERE SCLOSE < 3),
+	T AS
+	(SELECT DAYVALUES.SYMBOL AS SYM, *,
+			ROW_NUMBER() OVER (PARTITION BY DAYVALUES.SYMBOL
+																						ORDER BY STIME DESC) AS RN,
+			LAG(SCLOSE,
+
+				-1,
+				SCLOSE) OVER (PARTITION BY DAYVALUES.SYMBOL
+																		ORDER BY STIME DESC) AS PREVIOUS_CLOSE
+		FROM DAYVALUES
+		JOIN FUNDAMENTALS ON DAYVALUES.SYMBOL = FUNDAMENTALS.SYMBOL
+		WHERE DAYVALUES.SYMBOL NOT IN
+				(SELECT *
+					FROM FORBIDDENSTOCKS)),
+	TT AS
+	(SELECT *
+		FROM T
+		WHERE T.RN <= 5
+		ORDER BY SYM ASC),
+	AVG_GAIN_WITH_INDUSTRY AS
+	(SELECT AVG((TT.SCLOSE - TT.PREVIOUS_CLOSE) / TT.PREVIOUS_CLOSE) AS AVG_GAIN,
+			TT.SYM,
+			JSONB_PATH_QUERY(TT.DATA,
+
+				'$.industry') AS INDUSTRY
+		FROM TT
+		GROUP BY TT.SYM,
+			INDUSTRY
+		ORDER BY AVG_GAIN DESC),
+	FASTEST_INDUSTRY AS
+	(SELECT AVG(AVG_GAIN) AS G,
+			COUNT(1) AS STOCKS_COUNT,
+			INDUSTRY
+		FROM AVG_GAIN_WITH_INDUSTRY
+		GROUP BY INDUSTRY)
+SELECT *
+FROM FASTEST_INDUSTRY
+ORDER BY G desc, stocks_count DESC;
 ```
 
-
+# Calculate RS strenth of a stock with itself
 ```postgres-sql
-WITH 
-t as (select dayvalues.symbol as sym, *, row_number() over (partition by dayvalues.symbol order by stime desc) as rn 
-    from dayvalues
-    join fundamentals on dayvalues.symbol = fundamentals.symbol 
-    ),
-tc as (select *  from t 
-    where t.rn = 1
-	order by sym asc
-	),
-tc62 as (select avg(t.sclose) as sclose, sym  from t 
-    where t.rn <= 63
-	group by t.sym
-	order by sym asc
-	),
-tc126 as (select avg(t.sclose) as sclose, sym  from t 
-    where t.rn <= 126
-	group by t.sym
-	order by sym asc
-	),
-rs as (
-	select (2*tc.sclose/tc62.sclose) + (tc.sclose/tc126.sclose) as strength, tc.sym, tc.sclose as sclose_s, tc62.sclose as tc62_s, tc126.sclose as tc126_s from tc 
-		join tc62 on tc.sym = tc62.sym 
-		join tc126 on tc.sym = tc126.sym
-	)
-
-	select * from rs order by strength desc ;
+WITH T AS
+	(SELECT DAYVALUES.SYMBOL AS SYM, *,
+			ROW_NUMBER() OVER (PARTITION BY DAYVALUES.SYMBOL
+																						ORDER BY STIME DESC) AS RN
+		FROM DAYVALUES
+		JOIN FUNDAMENTALS ON DAYVALUES.SYMBOL = FUNDAMENTALS.SYMBOL),
+	TC AS
+	(SELECT *
+		FROM T
+		WHERE T.RN = 1
+		ORDER BY SYM ASC),
+	TC62 AS
+	(SELECT AVG(T.SCLOSE) AS SCLOSE,
+			SYM
+		FROM T
+		WHERE T.RN <= 63
+		GROUP BY T.SYM
+		ORDER BY SYM ASC),
+	TC126 AS
+	(SELECT AVG(T.SCLOSE) AS SCLOSE,
+			SYM
+		FROM T
+		WHERE T.RN <= 126
+		GROUP BY T.SYM
+		ORDER BY SYM ASC),
+	RS AS
+	(SELECT (2 * TC.SCLOSE / TC62.SCLOSE) + (TC.SCLOSE / TC126.SCLOSE) AS STRENGTH,
+			TC.SYM,
+			TC.SCLOSE AS SCLOSE_S,
+			TC62.SCLOSE AS TC62_S,
+			TC126.SCLOSE AS TC126_S
+		FROM TC
+		JOIN TC62 ON TC.SYM = TC62.SYM
+		JOIN TC126 ON TC.SYM = TC126.SYM)
+SELECT *
+FROM RS
+ORDER BY STRENGTH DESC ;
 ```
 
 # Delete all stocks with NaN values

@@ -36,6 +36,10 @@
 
 [x] Add connection pooling and parallelism to Analyzer (Got from 10min to 5min)
 
+[] Implement RS rating across all stocks
+
+[] Find leading sectors daily, weekly, monthly
+
 [] Build an API
 
 [] Build UI - Embed TV (https://www.tradingview.com/widget/advanced-chart/)
@@ -60,7 +64,7 @@
 
 [] Add more unittests
 
-[] Tryout ClickHouse
+[x] Tryout ClickHouse. Not really worth it as we need to fetch all data. And it is just ~1.5X faster than postgres when fetching all data
 
 ## List of high-level tasks
 
