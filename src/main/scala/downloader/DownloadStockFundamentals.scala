@@ -21,7 +21,7 @@ object DownloadStockFundamentals extends App {
   // Sent only 1 entry per second
   val stocksStream = Stream.eval(stocks).flatMap(Stream.emits).metered(1.second)
   val downloadStocksStream: Stream[IO, (Either[String, File], String)] =
-    stocksStream.parEvalMap(2)(t =>
+    stocksStream.parEvalMap(4)(t =>
       FundamentalsDownloader
         .downloadFile(t)
         .map(xx => {
@@ -40,29 +40,31 @@ object DownloadStockFundamentals extends App {
       _ => true // retry on any error
     )
 
-  val jdbcConfig: IO[JdbcDatabaseConfig] =
-    JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
-  val ixa =
-    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
+  retryDownloadStocksStream.compile.toList.unsafeRunSync()
 
-  val xxxx = ixa.flatMap(xa => {
-    val db = new DatabaseReadWritePort[IO](xa)
+  //val jdbcConfig: IO[JdbcDatabaseConfig] =
+  //  JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
+  //val ixa =
+  //  jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
-    val readStocks = retryDownloadStocksStream
-      .map(stocks =>
-        stocks.map(f => (f._1.map(Source.fromFile(_).mkString), f._2))
-      )
+  //val xxxx = ixa.flatMap(xa => {
+  //  val db = new DatabaseReadWritePort[IO](xa)
 
-    val xxx = readStocks.map(t =>
-      t.map(tt =>
-        tt._1.map(stockContents => {
-          val json = parse(stockContents).getOrElse(Json.Null)
-          db.writeFundamentals(tt._2, json, startTime).unsafeRunSync()
-        })
-      )
-    )
-    xxx.compile.toList
-  })
+  //  val readStocks = retryDownloadStocksStream
+  //    .map(stocks =>
+  //      stocks.map(f => (f._1.map(Source.fromFile(_).mkString), f._2))
+  //    )
 
-  xxxx.unsafeRunSync()
+  //  val xxx = readStocks.map(t =>
+  //    t.map(tt =>
+  //      tt._1.map(stockContents => {
+  //        val json = parse(stockContents).getOrElse(Json.Null)
+  //        db.writeFundamentals(tt._2, json, startTime).unsafeRunSync()
+  //      })
+  //    )
+  //  )
+  //  xxx.compile.toList
+  //})
+
+  //xxxx.unsafeRunSync()
 }

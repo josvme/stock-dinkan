@@ -36,13 +36,23 @@
 
 [x] Add connection pooling and parallelism to Analyzer (Got from 10min to 5min)
 
-[] Implement RS rating across all stocks
+[x] Find leading sectors daily, weekly, monthly
 
-[] Find leading sectors daily, weekly, monthly
+[x] Implement RS rating across all stocks
 
-[] Build an API
+[x] Get RS rating value between 0 and 100, 2*c/c63 + c/c126
 
-[] Build UI - Embed TV (https://www.tradingview.com/widget/advanced-chart/)
+[x] Build an API
+
+[x] Build UI - Embed TV (https://www.tradingview.com/widget/advanced-chart/)
+
+[x] Tryout ClickHouse. Not really worth it as we need to fetch all data. And it is just ~1.5X faster than postgres when fetching all data. It might be faster with specialized analysis
+
+[] Implement a better UI
+
+[] Improve API
+
+[] Get RS rating value between 0 and 100, 2*c/c63 + c/c126 + c/c189 + c/c252
 
 [] Write analysis where volume reduces a lot and price skates the 50DMA and 21DMA
 
@@ -54,8 +64,6 @@
 
 [] Compute leading groups
 
-[] Get RS rating value between 0 and 100, 2*c/c63 + c/c126 + c/c189 + c/c252
-
 [] Fix issue with pre-market gap ups and gap downs
 
 [] Write an integration test
@@ -64,7 +72,6 @@
 
 [] Add more unittests
 
-[x] Tryout ClickHouse. Not really worth it as we need to fetch all data. And it is just ~1.5X faster than postgres when fetching all data
 
 ## List of high-level tasks
 
