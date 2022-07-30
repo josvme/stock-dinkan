@@ -21,7 +21,9 @@ object FundamentalsDownloader {
         val data = yfinance.Ticker(ticker)
         val info = json.dumps(data.info).as[String]
         val path = Paths.get(fileLocation)
-        Files.delete(path)
+        Try {
+          Files.delete(path)
+        }.toOption
         Files.write(path, info.getBytes)
         path.toFile
       }.toEither.leftMap(_.getMessage)
