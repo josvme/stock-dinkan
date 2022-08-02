@@ -48,6 +48,10 @@
 
 [x] Tryout ClickHouse. Not really worth it as we need to fetch all data. And it is just ~1.5X faster than postgres when fetching all data. It might be faster with specialized analysis
 
+[] Trading view widget data is delayed by 15min
+
+[] Design a better UI
+
 [] Implement a better UI
 
 [] Improve API

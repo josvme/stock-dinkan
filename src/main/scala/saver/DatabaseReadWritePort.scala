@@ -66,6 +66,78 @@ class DatabaseReadWritePort[F[+_]: Monad: Async](
     xa.use(x => t.transact(x))
   }
 
+  def getAllStocksWithRsRatingAbove(rsRating: Int): F[List[String]] = {
+    val query = sql"""WITH FORBIDDENSTOCKS AS
+                  |	(SELECT DISTINCT SYMBOL
+                  |		FROM DAYVALUES
+                  |		WHERE SCLOSE < 3),
+                  |	T AS
+                  |	(SELECT DAYVALUES.SYMBOL AS SYM, *,
+                  |			ROW_NUMBER() OVER (PARTITION BY DAYVALUES.SYMBOL
+                  |																						ORDER BY STIME DESC) AS RN
+                  |		FROM DAYVALUES
+                  |		JOIN FUNDAMENTALS ON DAYVALUES.SYMBOL = FUNDAMENTALS.SYMBOL
+                  |		WHERE DAYVALUES.SYMBOL NOT IN
+                  |				(SELECT *
+                  |					FROM FORBIDDENSTOCKS)),
+                  |	TC AS
+                  |	(SELECT *
+                  |		FROM T
+                  |		WHERE T.RN = 1
+                  |		ORDER BY SYM ASC),
+                  |	TC62 AS
+                  |	(SELECT AVG(T.SCLOSE) AS SCLOSE,
+                  |			SYM
+                  |		FROM T
+                  |		WHERE T.RN <= 63
+                  |		GROUP BY T.SYM
+                  |		ORDER BY SYM ASC),
+                  |	TC126 AS
+                  |	(SELECT AVG(T.SCLOSE) AS SCLOSE,
+                  |			SYM
+                  |		FROM T
+                  |		WHERE T.RN <= 126
+                  |		GROUP BY T.SYM
+                  |		ORDER BY SYM ASC),
+                  |	TC189 AS
+                  |	(SELECT AVG(T.SCLOSE) AS SCLOSE,
+                  |			SYM
+                  |		FROM T
+                  |		WHERE T.RN <= 189
+                  |		GROUP BY T.SYM
+                  |		ORDER BY SYM ASC),
+                  |	RS AS
+                  |	(SELECT (2 * TC.SCLOSE / TC62.SCLOSE) + (TC.SCLOSE / TC126.SCLOSE) + (TC.SCLOSE / TC189.SCLOSE) AS STRENGTH,
+                  |			TC.SYM,
+                  |			TC.SCLOSE AS SCLOSE_S,
+                  |			TC62.SCLOSE AS TC62_S,
+                  |			TC126.SCLOSE AS TC126_S,
+                  |			TC189.SCLOSE AS TC189_S
+                  |		FROM TC
+                  |		JOIN TC62 ON TC.SYM = TC62.SYM
+                  |		JOIN TC126 ON TC.SYM = TC126.SYM
+                  |		JOIN TC189 ON TC.SYM = TC189.SYM),
+                  |	STR AS
+                  |	(SELECT *,
+                  |			ROW_NUMBER() OVER (
+                  |																						ORDER BY STRENGTH DESC) AS RN,
+                  |			COUNT(1) OVER () AS TOTAL
+                  |		FROM RS
+                  |		ORDER BY STRENGTH DESC), 
+                  | COMPLETERS AS
+                  |	(SELECT *,
+                  |			100 - (STR.RN * 100 / STR.TOTAL) AS RELATIVE_STRENGTH
+                  |		FROM STR)
+                  |SELECT sym
+                  |FROM COMPLETERS WHERE RELATIVE_STRENGTH >= $rsRating""".stripMargin
+    val t =
+      query
+        .query[String]
+        .to[List]
+
+    xa.use(x => t.transact(x))
+  }
+
   def getLatestPointForStock(symbol: String): F[Long] = {
     // Wed Feb 26 2020 13:19:25 GMT+0000 is 1582723165
     val t =
