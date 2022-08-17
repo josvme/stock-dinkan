@@ -12,12 +12,18 @@ object RunAnalyzer extends App {
 
   val startTime = LocalDateTime.now()
   println(startTime)
+  val jdbcConfig: IO[JdbcDatabaseConfig] =
+    JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
+  val ixa =
+    jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
+
+  val allowedStocks = ixa
+    .flatMap(xa => {
+      val db = new DatabaseReadWritePort(xa)
+      db.getAllStocksWithRsRatingAbove(70)
+    })
 
   def runAndGetAnalysisResults(p: AnalysisTrait) = {
-    val jdbcConfig: IO[JdbcDatabaseConfig] =
-      JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
-    val ixa =
-      jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
     val ixaa = fs2.Stream.eval(ixa)
     val IndexWithAllStocks = ixaa
@@ -75,10 +81,16 @@ object RunAnalyzer extends App {
   }
 
   println("Welcome to StockDinkan Analyzer")
-  val p = Combiner.and(TightStockDetector, MinerviniScan)
-  val filteredResult = runAndGetAnalysisResults(p)
+  val filteredResults = allowedStocks.flatMap(s => {
+    val minerviniScan = new MinerviniScan(s)
+    val p = minerviniScan
+    val filteredResult = runAndGetAnalysisResults(p)
+    filteredResult.compile.toList
+  })
+  //val p = Combiner.and(TightStockDetector, minerviniScan)
 
-  filteredResult.compile.toList.unsafeRunSync
+  val output = filteredResults.unsafeRunSync()
+  println(output)
   val endTime = LocalDateTime.now()
   println(endTime)
 }
