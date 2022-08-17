@@ -48,7 +48,17 @@
 
 [x] Tryout ClickHouse. Not really worth it as we need to fetch all data. And it is just ~1.5X faster than postgres when fetching all data. It might be faster with specialized analysis
 
-[] Trading view widget data is delayed by 15min
+[x] Trading view widget data is delayed by 15min. Not ideal, but is also fine.
+
+[] Analysis for finding high volume up moves.
+
+[] Write an analysis for multiple pocket pivots before earnings.
+
+[] Implement green colored bar in TL. It is very helpful in finding leaders.
+
+[] Implement efficient download of fundamentals based on earnings rate and update it.
+
+[] Introduce some efficient update of prices based on prices (say only stock over $5 will get updated everyday)
 
 [] Design a better UI
 
@@ -76,6 +86,18 @@
 
 [] Add more unittests
 
+## Get earnings date via yfinance
+The `obj.info` makes 5 calls and caches the results. So new data access, doesn't result in new requests.
+The `obj.earnings_history` just makes 1 call. It includes estimate, reported and surprises. So we can compute earnings growth.
+```python
+>>> import yfinance as yf
+>>> obj = yf.Ticker('MSFT')
+>>> obj.earnings_history
+```
+
+## Green lines in Trading View Volume (TL)
+* If up days volume / down day volume over last 20 days. If over 1.5 it is under accumulation.
+* If current volume is 100% above average volume.
 
 ## List of high-level tasks
 

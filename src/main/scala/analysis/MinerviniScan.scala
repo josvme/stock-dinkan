@@ -3,11 +3,15 @@ package analysis
 import models.DayData
 import utilies.Indicators
 
-object MinerviniScan extends AnalysisTrait {
+class MinerviniScan(stocksAboveSeventy: List[String]) extends AnalysisTrait {
   override def passAnalysis(
       index: Vector[DayData],
       stocks: Vector[DayData]
   ): Boolean = {
+
+    if (stocks.length < 1) {
+      return false
+    }
     val weeklyDailyRS = Indicators.computeWeeklyRS(index, stocks)
 
     val weeklyPrices = Indicators.computeWeeklyFromDailyData(stocks)
@@ -31,7 +35,7 @@ object MinerviniScan extends AnalysisTrait {
     val condition2 = last150DaysAvg > last200DaysAvg
 
     // 200 day trending up for atleast 1 month
-    val condition3 = isTrendingUp(last30Days200DaysAvg)
+    val condition3 = true || isTrendingUp(last30Days200DaysAvg)
 
     val condition4 =
       last50DaysAvg > last150DaysAvg && last50DaysAvg > last200DaysAvg
@@ -45,9 +49,9 @@ object MinerviniScan extends AnalysisTrait {
       currentPrice >= (last52Weeks.reduce[Double](Math.max) * .75)
 
     // relative strength > 70, develop RS to be between 0 and 100
-    val condition8 = true
+    val condition8 = stocksAboveSeventy.contains(stocks.last.symbol)
 
-    return condition1 && condition2 && condition3 && condition4 && condition5 && condition6 && condition7 && condition8
+    condition1 && condition2 && condition3 && condition4 && condition5 && condition6 && condition7 && condition8
   }
 
   private def isTrendingUp(d: Vector[Double]): Boolean = {
@@ -71,7 +75,7 @@ object MinerviniScan extends AnalysisTrait {
       }
     }
 
-    return true
+    true
   }
 
   override def name(): String = "Minervini Scan"
