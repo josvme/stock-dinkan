@@ -4,7 +4,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import migrations.JdbcDatabaseConfig
 import saver.DatabaseReadWritePort
-import utilies.Indicators
+import utilies.{Fundamentals, Indicators}
 
 import java.time.LocalDateTime
 
@@ -17,16 +17,28 @@ object RunAnalyzer extends App {
   val ixa =
     jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
+  // We do all of these outside as we dont know how to do memoization. Since IO is lazy it executes queries many times
   val allowedStocks = ixa
     .flatMap(xa => {
       val db = new DatabaseReadWritePort(xa)
       db.getAllStocksWithRsRatingAbove(70)
     })
+    .unsafeRunSync()
+
+  val nasdaq = ixa
+    .flatMap(xa => {
+      val db = new DatabaseReadWritePort(xa)
+      db.find("QQQ")
+    })
+    .unsafeRunSync()
+
+  val blankCheckCompanies =
+    new Fundamentals[IO](ixa).getBlankCheckCompanies.unsafeRunSync()
 
   def runAndGetAnalysisResults(p: AnalysisTrait) = {
 
     val ixaa = fs2.Stream.eval(ixa)
-    val IndexWithAllStocks = ixaa
+    val indexWithAllStocks = ixaa
       .flatMap(xa => {
         val db = new DatabaseReadWritePort(xa)
         val allStocks =
@@ -37,19 +49,19 @@ object RunAnalyzer extends App {
         allStocks
       })
 
-    val parallelStocks = IndexWithAllStocks
-      .parEvalMap(16) { stock =>
+    val filteredStocks =
+      indexWithAllStocks.filter(s => blankCheckCompanies.contains(s))
+    val parallelStocks = filteredStocks
+      .parEvalMap(8) { stock =>
         ixa.flatMap(xa => {
           val db = new DatabaseReadWritePort(xa)
-          val nasdaq = db.find("QQQ")
           val allStocksData = db.find(stock)
 
           val tuples = for {
-            nas <- nasdaq
             all <- allStocksData
-          } yield (nas, all)
+          } yield (nasdaq, all)
 
-          tuples
+          allStocksData.map(s => (nasdaq, s))
         })
       }
 
@@ -81,12 +93,13 @@ object RunAnalyzer extends App {
   }
 
   println("Welcome to StockDinkan Analyzer")
-  val filteredResults = allowedStocks.flatMap(s => {
-    val minerviniScan = new MinerviniScan(s)
-    val p = minerviniScan
+  val filteredResults = {
+    //val minerviniScan = new MinerviniScan(s)
+    //val p = minerviniScan
+    val p = HighVolumeUpMoves
     val filteredResult = runAndGetAnalysisResults(p)
     filteredResult.compile.toList
-  })
+  }
   //val p = Combiner.and(TightStockDetector, minerviniScan)
 
   val output = filteredResults.unsafeRunSync()
