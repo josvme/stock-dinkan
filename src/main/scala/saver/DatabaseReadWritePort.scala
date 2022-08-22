@@ -14,13 +14,14 @@ import cats.effect.unsafe.implicits.global
 
 object DatabaseReadWritePort {
   def buildTransactor[F[_]: Async](
-      jdbcConfig: JdbcDatabaseConfig
+      jdbcConfig: JdbcDatabaseConfig,
+      poolSize: Int = 4
   ): Resource[F, HikariTransactor[F]] = {
     // Resource yielding a transactor configured with a bounded connect EC and an unbounded
     // transaction EC. Everything will be closed and shut down cleanly after use.
     val transactor: Resource[F, HikariTransactor[F]] =
       for {
-        ce <- ExecutionContexts.fixedThreadPool[F](4) // our connect EC
+        ce <- ExecutionContexts.fixedThreadPool[F](poolSize) // our connect EC
         xa <- HikariTransactor.newHikariTransactor[F](
           jdbcConfig.driver, // driver classname
           jdbcConfig.url, // connect URL

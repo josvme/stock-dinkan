@@ -43,6 +43,6 @@ object StockList {
       .map(x => x.getOrElse(Vector()))
       .map(list => list.sorted)
       .map(l => l.filter((x) => !x.contains("^")))
-    symbols
+    symbols.map(x => "QQQ" +: x)
   }
 }

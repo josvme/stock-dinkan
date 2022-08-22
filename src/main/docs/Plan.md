@@ -50,11 +50,13 @@
 
 [x] Trading view widget data is delayed by 15min. Not ideal, but is also fine.
 
-[] Analysis for finding high volume up moves.
+[x] Implement green colored bar in TL. It is very helpful in finding leaders.
+
+[x] Analysis for finding high volume up moves.
+
+[] Implement launchpad around MAs
 
 [] Write an analysis for multiple pocket pivots before earnings.
-
-[] Implement green colored bar in TL. It is very helpful in finding leaders.
 
 [] Implement efficient download of fundamentals based on earnings rate and update it.
 
@@ -85,6 +87,8 @@
 [] Build Cronjob server
 
 [] Add more unittests
+
+[] Deploy to GKE via terraform / pulumi
 
 ## Get earnings date via yfinance
 The `obj.info` makes 5 calls and caches the results. So new data access, doesn't result in new requests.
