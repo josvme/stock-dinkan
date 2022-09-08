@@ -2,9 +2,8 @@ package migrations
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import com.typesafe.scalalogging.LazyLogging
 
-object DBMigrationsCommand extends IOApp with LazyLogging {
+object DBMigrationsCommand extends IOApp {
 
   /** Lists all JDBC data-sources, defined in `application.conf`
     */
@@ -16,7 +15,7 @@ object DBMigrationsCommand extends IOApp with LazyLogging {
     val migrate =
       dbConfigNamespaces.traverse_ { namespace =>
         for {
-          _ <- IO(logger.info(s"Migrating database configuration: $namespace"))
+          _ <- IO(println(s"Migrating database configuration: $namespace"))
           cfg <- JdbcDatabaseConfig.loadFromGlobal[IO](namespace)
           _ <- DBMigrations.migrate[IO](cfg)
         } yield ()

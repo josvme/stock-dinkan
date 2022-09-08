@@ -1,12 +1,13 @@
 import sbt.Keys.libraryDependencies
 
-ThisBuild / scalaVersion := "2.13.7"
+ThisBuild / scalaVersion := "3.2.0"
 
 name := "stock-dinkan"
 organization := "me.josv"
 version := "1.0"
 
 lazy val runMigrate = taskKey[Unit]("Migrates the database schema.")
+val LogbackVersion = "1.4.0"
 lazy val root = (project in file("."))
   .settings(
     fullRunTask(runMigrate, Compile, "migrations.DBMigrationsCommand"),
@@ -20,17 +21,16 @@ val fs2 = Seq(
 ).map(_ % fs2Version)
 val circeVersion = "0.14.1"
 val circeDeps = Seq(
-  "io.circe" %% "circe-core",
-  "io.circe" %% "circe-generic",
-  "io.circe" %% "circe-parser",
-  "io.circe" %% "circe-optics"
-).map(_ % circeVersion)
+  "io.circe" %% "circe-core" % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-parser" % circeVersion
+)
 val doobie = Seq(
   "org.tpolecat" %% "doobie-core" % "1.0.0-RC2",
   "org.tpolecat" %% "doobie-hikari" % "1.0.0-RC2",
   "org.tpolecat" %% "doobie-postgres" % "1.0.0-RC2", // Postgres driver 42.3.1 + type mappings.
   "org.tpolecat" %% "doobie-postgres-circe" % "1.0.0-RC2",
-  "org.tpolecat" %% "doobie-specs2" % "1.0.0-RC2" % "test", // Specs2 support for typechecking statements.
+  // Specs2 support for typechecking statements.
   "org.tpolecat" %% "doobie-scalatest" % "1.0.0-RC2" % "test" // ScalaTest support for typechecking statements.
 )
 
@@ -57,9 +57,7 @@ val commonSettings = Seq(
     "com.softwaremill.sttp.client3" %% "core" % "3.7.6",
     "com.softwaremill.sttp.client3" %% "async-http-client-backend-fs2" % "3.7.6",
     // migrations
-    "com.github.pureconfig" %% "pureconfig" % "0.17.1",
     "org.flywaydb" % "flyway-core" % "8.4.2",
-    "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
     // for python interoperability
     "me.shadaj" %% "scalapy-core" % "0.5.2"
   ) ++ circeDeps ++ doobie ++ fs2 ++ http4s

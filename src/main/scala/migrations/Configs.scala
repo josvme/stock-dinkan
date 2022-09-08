@@ -1,29 +1,40 @@
 package migrations
 
 import cats.effect.Sync
-import com.typesafe.config.ConfigFactory
-import pureconfig.generic.semiauto._
-import pureconfig.{ConfigConvert, ConfigSource}
 
 final case class JdbcDatabaseConfig(
     url: String,
     driver: String,
-    user: Option[String],
-    password: Option[String],
+    user: String,
+    password: String,
     migrationsTable: String,
     migrationsLocations: List[String]
 )
 
 object JdbcDatabaseConfig {
   def loadFromGlobal[F[_]: Sync](
-      configNamespace: String
+      environment: String
   ): F[JdbcDatabaseConfig] =
     Sync[F].delay {
-      val config = ConfigFactory.load()
-      ConfigSource.fromConfig(config.getConfig(configNamespace)).loadOrThrow
+      val driver = "org.postgresql.Driver"
+      val host = "127.0.0.1"
+      val port = 5432
+      val dbName = "postgres"
+      val url = s"jdbc:postgresql://$host:$port/$dbName"
+      val user = "postgres"
+      val password = "postgres"
+      val migrationsTable = "FlywaySchemaHistory"
+      val migrationsLocations = List(
+        "classpath:stockdinkan/jdbc"
+      )
+      JdbcDatabaseConfig(
+        url,
+        driver,
+        user,
+        password,
+        migrationsTable,
+        migrationsLocations
+      )
     }
 
-  // Integration with PureConfig
-  implicit val configConvert: ConfigConvert[JdbcDatabaseConfig] =
-    deriveConvert
 }
