@@ -5,7 +5,6 @@ import sttp.client3.asynchttpclient.fs2.AsyncHttpClientFs2Backend
 import sttp.client3.{UriContext, basicRequest, emptyRequest}
 import cats.effect.unsafe.implicits.global
 import cats.implicits.toTraverseOps
-import io.circe.optics.JsonPath.root
 import io.circe.{Json, parser}
 
 object StockList {
@@ -31,14 +30,20 @@ object StockList {
       StockList
         .downloadStockList()
         .map(_.toOption.flatMap(x => parser.parse(x).toOption))
-    val listSelector = root.data.table.rows.arr
     val stocksList = stocks.map {
-      case Some(s) => listSelector.getOption(s)
-      case None    => None
+      case Some(s) =>
+        s.hcursor
+          .downField("data")
+          .downField("table")
+          .get[Vector[Json]]("rows")
+          .toOption
+      case None => None
     }
     val symbols = stocksList
       .map(x =>
-        x.flatMap(v => v.map(vv => root.symbol.string.getOption(vv)).sequence)
+        x.flatMap(v =>
+          v.map(vv => vv.hcursor.get[String]("symbol").toOption).sequence
+        )
       )
       .map(x => x.getOrElse(Vector()))
       .map(list => list.sorted)

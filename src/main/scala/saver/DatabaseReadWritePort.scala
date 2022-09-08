@@ -25,8 +25,8 @@ object DatabaseReadWritePort {
         xa <- HikariTransactor.newHikariTransactor[F](
           jdbcConfig.driver, // driver classname
           jdbcConfig.url, // connect URL
-          jdbcConfig.user.orNull, // username
-          jdbcConfig.password.orNull, // password
+          jdbcConfig.user, // username
+          jdbcConfig.password, // password
           ce // await connection here
         )
       } yield xa

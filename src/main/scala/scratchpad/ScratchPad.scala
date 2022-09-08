@@ -6,7 +6,7 @@ object ScratchPad {
 
   val listLengthPython = py.Dynamic.global.len(List(1, 2, 3).toPythonProxy)
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     println(listLengthPython)
 
     val yfinance = py.module("yfinance")

@@ -1,23 +1,22 @@
 package migrations
 
 import cats.effect.Sync
-import com.typesafe.scalalogging.LazyLogging
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.Location
 import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import scala.jdk.CollectionConverters._
 
-object DBMigrations extends LazyLogging {
+object DBMigrations {
 
   def migrate[F[_]: Sync](config: JdbcDatabaseConfig): F[Int] =
     Sync[F].delay {
-      logger.info(
+      println(
         "Running migrations from locations: " +
           config.migrationsLocations.mkString(", ")
       )
       val count = unsafeMigrate(config)
-      logger.info(s"Executed $count migrations")
+      println(s"Executed $count migrations")
       count
     }
 
@@ -25,8 +24,8 @@ object DBMigrations extends LazyLogging {
     val m: FluentConfiguration = Flyway.configure
       .dataSource(
         config.url,
-        config.user.orNull,
-        config.password.orNull
+        config.user,
+        config.password
       )
       .group(true)
       .outOfOrder(false)
@@ -49,7 +48,7 @@ object DBMigrations extends LazyLogging {
 
     if (!validated.validationSuccessful)
       for (error <- validated.invalidMigrations.asScala)
-        logger.warn(s"""
+        println(s"""
                        |Failed validation:
                        |  - version: ${error.version}
                        |  - path: ${error.filepath}
