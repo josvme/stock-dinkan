@@ -13,7 +13,7 @@ import java.time.Instant
 import scala.concurrent.duration._
 import scala.io.Source
 
-object DownloadStockFundamentals extends App {
+object DownloadStockFundamentals {
 
   println("Welcome to StockDinkan Fundamentals Downloader")
   val startTime = Instant.now.getEpochSecond
@@ -40,14 +40,12 @@ object DownloadStockFundamentals extends App {
       _ => true // retry on any error
     )
 
-  retryDownloadStocksStream.compile.toList.unsafeRunSync()
-
-  //val jdbcConfig: IO[JdbcDatabaseConfig] =
+  // val jdbcConfig: IO[JdbcDatabaseConfig] =
   //  JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
-  //val ixa =
+  // val ixa =
   //  jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
 
-  //val xxxx = ixa.flatMap(xa => {
+  // val xxxx = ixa.flatMap(xa => {
   //  val db = new DatabaseReadWritePort[IO](xa)
 
   //  val readStocks = retryDownloadStocksStream
@@ -64,7 +62,12 @@ object DownloadStockFundamentals extends App {
   //    )
   //  )
   //  xxx.compile.toList
-  //})
+  // })
 
-  //xxxx.unsafeRunSync()
+  // xxxx.unsafeRunSync()
+}
+
+@main def main() = {
+  DownloadStockFundamentals.retryDownloadStocksStream.compile.toList
+    .unsafeRunSync()
 }

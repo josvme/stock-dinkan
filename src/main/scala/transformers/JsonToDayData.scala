@@ -55,7 +55,7 @@ object JsonToDayData {
 
     val high = getValuesDouble("high", indicators)
 
-    val volume = json.hcursor
+    val volume = indicators.hcursor
       .get[Vector[Json]]("volume")
       .toOption
       .getOrElse(Vector[Json]())

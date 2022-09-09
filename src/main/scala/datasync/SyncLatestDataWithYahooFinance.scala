@@ -18,9 +18,10 @@ import java.time.{
   ZoneId,
   ZoneOffset
 }
+
 import scala.concurrent.duration.DurationInt
 
-object SyncLatestDataWithYahooFinance extends App {
+object SyncLatestDataWithYahooFinance {
 
   println("Welcome to StockDinkan Yahoo Finance Data Sync")
   val jdbcConfig: IO[JdbcDatabaseConfig] =
@@ -39,7 +40,7 @@ object SyncLatestDataWithYahooFinance extends App {
     // It is in UTC
     val currentTime = Instant.now()
 
-    val epoch = currentTime.toEpochMilli() / 1000 //.`with`(LocalTime.MAX)
+    val epoch = currentTime.toEpochMilli() / 1000 // .`with`(LocalTime.MAX)
     val allStocks = StockList.getAllStocks()
     val allStocksStream = Stream.eval(allStocks).flatMap(Stream.emits)
     val allStocksPeriods =
@@ -178,5 +179,8 @@ object SyncLatestDataWithYahooFinance extends App {
     stockDataList
   }
 
-  syncData().compile.drain.unsafeRunSync()
+}
+
+@main def main() = {
+  SyncLatestDataWithYahooFinance.syncData().compile.drain.unsafeRunSync()
 }
