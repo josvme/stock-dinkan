@@ -8,10 +8,8 @@ import utilies.{Fundamentals, Indicators}
 
 import java.time.LocalDateTime
 
-object RunAnalyzer extends App {
+object RunAnalyzer {
 
-  val startTime = LocalDateTime.now()
-  println(startTime)
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
   val ixa =
@@ -36,7 +34,6 @@ object RunAnalyzer extends App {
     new Fundamentals[IO](ixa).getBlankCheckCompanies.unsafeRunSync()
 
   def runAndGetAnalysisResults(p: AnalysisTrait) = {
-
     val ixaa = fs2.Stream.eval(ixa)
     val indexWithAllStocks = ixaa
       .flatMap(xa => {
@@ -51,6 +48,7 @@ object RunAnalyzer extends App {
 
     val filteredStocks =
       indexWithAllStocks.filter(s => blankCheckCompanies.contains(s))
+
     val parallelStocks = filteredStocks
       .parEvalMap(8) { stock =>
         ixa.flatMap(xa => {
@@ -67,7 +65,7 @@ object RunAnalyzer extends App {
 
     val result = parallelStocks
       .map(IndexStockPair => {
-        //val p = IncreasingWeeklyDailyRS
+        // val p = IncreasingWeeklyDailyRS
         val t = Indicators
           .combineIndexAndStockData(
             IndexStockPair._1.toVector,
@@ -91,16 +89,20 @@ object RunAnalyzer extends App {
 
     filteredResult
   }
+}
 
+@main def main() = {
+  val startTime = LocalDateTime.now()
+  println(startTime)
   println("Welcome to StockDinkan Analyzer")
   val filteredResults = {
-    //val minerviniScan = new MinerviniScan(s)
-    //val p = minerviniScan
+    // val minerviniScan = new MinerviniScan(s)
+    // val p = minerviniScan
     val p = HighVolumeUpMoves
-    val filteredResult = runAndGetAnalysisResults(p)
+    val filteredResult = RunAnalyzer.runAndGetAnalysisResults(p)
     filteredResult.compile.toList
   }
-  //val p = Combiner.and(TightStockDetector, minerviniScan)
+  // val p = Combiner.and(TightStockDetector, minerviniScan)
 
   val output = filteredResults.unsafeRunSync()
   println(output)
