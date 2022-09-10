@@ -90,7 +90,7 @@
 
 [] Deploy to GKE via terraform / pulumi
 
-## Get earnings date via yfinance
+## Get earnings date via yfinance (Done)
 The `obj.info` makes 5 calls and caches the results. So new data access, doesn't result in new requests.
 The `obj.earnings_history` just makes 1 call. It includes estimate, reported and surprises. So we can compute earnings growth.
 ```python

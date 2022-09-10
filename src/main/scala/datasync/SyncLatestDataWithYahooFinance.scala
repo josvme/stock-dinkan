@@ -48,7 +48,7 @@ object SyncLatestDataWithYahooFinance {
     // We want to rate limit only stocks that should be downloaded
     val allStocksPeriodStreamPerSecond = allStocksPeriods
       .filter({ case (_, config) => !dataAlreadyDownloaded(config) })
-      .metered(2000.millisecond)
+      .metered(1000.millisecond)
     val fetchedStocks = allStocksPeriodStreamPerSecond.parEvalMap(1)(period =>
       getAndWriteStockData(period._1, period._2)
     )
