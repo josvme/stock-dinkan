@@ -60,22 +60,29 @@ class MinerviniScan(stocksAboveSeventy: List[String]) extends AnalysisTrait {
     val lastPoint = data.last
     var highestPoint = startPoint
     val maxDownMoveAllowed = (lastPoint - startPoint) / 10
+    var isTrendingUp = true
 
     if (lastPoint < startPoint) {
       return false
     }
 
-    for (x <- data) {
+    val length = data.length
+    var i = 0
+
+    while (i < length && isTrendingUp) {
+      var x = data(i)
       if (x > highestPoint) {
         highestPoint = x
       }
 
       if ((highestPoint - x) > maxDownMoveAllowed) {
-        return false
+        isTrendingUp = false
       }
+
+      i = i + 1
     }
 
-    true
+    isTrendingUp
   }
 
   override def name(): String = "Minervini Scan"
