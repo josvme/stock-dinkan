@@ -10,19 +10,14 @@ import io.circe.parser._
 import java.time.Instant
 import scala.io.Source
 
-object ReadAndWriteFundamentalStocksDataToDB extends App {
+@main def main() = {
   println("Welcome to Stock Dinkan Fundamentals DB Writer")
-
   val startTime = Instant.now.getEpochSecond
   val allFiles = DataSource.getAllStockFundamentalFileNames[IO]
   val jdbcConfig: IO[JdbcDatabaseConfig] =
     JdbcDatabaseConfig.loadFromGlobal[IO]("stockdinkan.jdbc")
   val ixa =
     jdbcConfig.map(jdbc => DatabaseReadWritePort.buildTransactor[IO](jdbc))
-
-  def getStockName(getName: String) = {
-    getName.takeWhile(x => x != '.')
-  }
 
   ixa
     .flatMap(xa => {
