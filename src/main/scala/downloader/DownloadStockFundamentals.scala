@@ -17,7 +17,7 @@ object DownloadStockFundamentals {
 
   println("Welcome to StockDinkan Fundamentals Downloader")
   val startTime = Instant.now.getEpochSecond
-  val stocks = StockList.getAllStocks()
+  val stocks: IO[Vector[String]] = StockList.getAllStocks()
   // Sent only 1 entry per second
   val stocksStream = Stream.eval(stocks).flatMap(Stream.emits).metered(1.second)
   val downloadStocksStream: Stream[IO, (Either[String, File], String)] =
@@ -68,6 +68,6 @@ object DownloadStockFundamentals {
 }
 
 @main def main() = {
-  DownloadStockFundamentals.retryDownloadStocksStream.compile.toList
+  DownloadStockFundamentals.retryDownloadStocksStream.take(1).compile.toList
     .unsafeRunSync()
 }

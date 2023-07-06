@@ -20,17 +20,18 @@ object FundamentalsDownloader {
         val yfinance = py.module("yfinance")
         val json = py.module("json")
         val data = yfinance.Ticker(ticker)
-        val earnings = data.earnings_history.to_json().as[String]
+        //val earnings = data.earnings_date.to_json().as[String]
         val info = json.dumps(data.info).as[String]
 
-        val earningsJson = parse(earnings)
+        //val earningsJson = parse(earnings)
         val infoJson = parse(info)
 
-        val combinedJson = for {
-          e <- earningsJson
-          i <- infoJson
-        } yield e.deepMerge(i)
+        //val combinedJson = for {
+        //  e <- earningsJson
+        //  i <- infoJson
+        //} yield e.deepMerge(i)
 
+        val combinedJson = infoJson
         val combined =
           combinedJson.getOrElse(Json.Null).toString
         val path = Paths.get(fileLocation)

@@ -1,6 +1,6 @@
 import sbt.Keys.libraryDependencies
 
-ThisBuild / scalaVersion := "3.2.0"
+ThisBuild / scalaVersion := "3.3.0"
 
 name := "stock-dinkan"
 organization := "me.josv"
@@ -69,7 +69,7 @@ import ai.kien.python.Python
 
 // This should take care of virtualenv
 lazy val python = Python(
-  "/home/josv/Projects/StockDinkan/stock-dinkan/env/bin/python"
+  "/home/josv/Projects/stock-dinkan/env/bin/python"
 )
 lazy val javaOpts = python.scalapyProperties.get.map { case (k, v) =>
   s"""-D$k=$v"""
