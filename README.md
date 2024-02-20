@@ -1,11 +1,3 @@
-## Why this project?
-
-* Marketsmith costs 150$
-* The hardest part is to find the stocks, other part is looking at Trading view and discipline
-* Need a way to manage trading statistics
-* Have much more flexibility in to the future
-* Scratch an itch and learn a few technologies
-
 ## Project Goals
 
 1. Able to screen for stocks
